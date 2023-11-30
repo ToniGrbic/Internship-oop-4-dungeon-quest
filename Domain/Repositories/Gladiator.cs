@@ -6,7 +6,7 @@ namespace Domain.Repositories;
     public class Gladiator : Hero
     {
         public int Rage { get; set; }
-        public Gladiator(string Name, int XP) : base(Name, XP)
+        public Gladiator(string Name) : base(Name)
         {
             this.Rage = 0;
             this.HP = (int)HeroHP.Gladiator;
