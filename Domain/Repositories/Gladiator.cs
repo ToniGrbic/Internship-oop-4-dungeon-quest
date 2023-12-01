@@ -10,6 +10,7 @@ namespace Domain.Repositories;
         {
             this.Rage = 0;
             this.HP = (int)HeroHP.Gladiator;
+            this.HPTheshold = (int)HeroHP.Gladiator;
             this.Damage = (int)HeroDamage.Gladiator;
             this.Trait = "Gladiator";
         }

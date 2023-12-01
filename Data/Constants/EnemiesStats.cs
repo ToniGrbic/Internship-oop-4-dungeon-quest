@@ -19,5 +19,12 @@ namespace Data.Constants
         Witch = 205,
         Brute = 400,
     }
+    
+    public enum EnemiesXP
+    {
+        Goblin = 50,
+        Witch = 100,
+        Brute = 75,
+    }   
 
 }

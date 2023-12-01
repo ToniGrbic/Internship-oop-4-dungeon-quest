@@ -8,6 +8,7 @@ namespace Domain.Repositories
         public Goblin()
         {
             this.HP = (int)EnemiesHP.Goblin;
+            this.XP = (int)EnemiesXP.Goblin;
             this.Damage = (int)EnemiesDamage.Goblin;
             this.Type = "Goblin";
         }

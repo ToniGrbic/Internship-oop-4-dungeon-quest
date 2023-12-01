@@ -3,7 +3,7 @@ using Data.Constants;
 
 namespace Domain.Repositories
 {
-    internal class Brute:Enemy
+    public class Brute:Enemy
     {
         public Brute()
         {

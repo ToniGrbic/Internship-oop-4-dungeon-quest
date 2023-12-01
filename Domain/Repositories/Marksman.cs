@@ -9,6 +9,7 @@ namespace Domain.Repositories
         {
             this.Damage = (int)HeroDamage.Marksman;
             this.HP = (int)HeroHP.Marksman;
+            this.HPTheshold = (int)HeroHP.Marksman;
             this.Trait = "Marksman";
         }
     }

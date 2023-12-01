@@ -8,6 +8,7 @@ namespace Domain.Repositories
         public Enchanter(string name) : base(name)
         {
             this.HP = (int)HeroHP.Enchanter;
+            this.HPTheshold = (int)HeroHP.Enchanter;
             this.Damage = (int)HeroDamage.Enchanter;
             this.Trait = "Enchanter";
         }

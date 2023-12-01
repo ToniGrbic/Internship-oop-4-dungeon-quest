@@ -6,9 +6,15 @@ using System.Threading.Tasks;
 
 namespace Data.Constants
 {
-    public enum GameState
+    public enum GameLoop
     {
         CONTINUE,
         EXIT
+    }
+    public enum GameState
+    {
+        IN_PROGRESS,    
+        WIN,
+        LOSS,
     }
 }

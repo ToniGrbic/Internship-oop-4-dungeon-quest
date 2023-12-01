@@ -4,6 +4,7 @@ public class Hero
     public string Name { get; set; }
     public int XP { get; set; }
     public int XPTreshold { get; set; }
+    public int HPTheshold { get; set; }
     public int Damage { get; set; }
     public int HP { get; set; }
     public int Level { get; set; }
@@ -16,7 +17,6 @@ public class Hero
         XPTreshold = 100;
         Trait = "";
     }
-
     public void GainXP(int gainedXP)
     {
         if(XP + gainedXP >= XPTreshold)
@@ -30,12 +30,10 @@ public class Hero
         else
             XP += gainedXP;
     }
-
     public void BasicAttack(Enemy enemy)
     {
         enemy.HP -= Damage;
     }
-
     public void SpendXPforHP(int amount)
     {
         if(XP < 100 && XP > amount)
@@ -47,9 +45,5 @@ public class Hero
             Console.WriteLine("Not enough XP");
         }
     }
-
-
-
-
 }
 
