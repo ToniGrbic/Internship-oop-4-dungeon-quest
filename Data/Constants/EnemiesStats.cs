@@ -1,30 +1,25 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
+﻿
 namespace Data.Constants
 {
     public enum EnemiesDamage
     {
-        Goblin = 50,
-        Witch = 75,
-        Brute = 30,
+        Goblin = 80,
+        Witch = 120,
+        Brute = 60,
     }
 
     public enum EnemiesHP
     {
-        Goblin = 250,
-        Witch = 205,
-        Brute = 400,
+        Goblin = 150,
+        Witch = 120,
+        Brute = 300,
     }
     
     public enum EnemiesXP
     {
-        Goblin = 50,
-        Witch = 100,
-        Brute = 75,
+        Goblin = 75,
+        Witch = 130,
+        Brute = 110,
     }   
 
 }
