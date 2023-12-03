@@ -7,7 +7,8 @@ namespace Domain.Repositories
     {
         public Brute()
         {
-            this.HP = (int)EnemiesHP.Brute;
+            this.HPThreshold = (int)EnemiesHP.Brute;
+            this.HP = HPThreshold;
             this.XP = (int)EnemiesXP.Brute;
             this.Damage = (int)EnemiesDamage.Brute;
             this.Type = "Brute";
