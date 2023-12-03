@@ -90,11 +90,12 @@ do{
     else if (gameState == GameState.WIN)
     {
         Console.WriteLine(
-            "YOU HAVE WON, Congrats!\n\n" +
-            "END HERO STATS:\n"
+            "YOU HAVE WON, Congrats!\n" +
+            "****************************\n\n"
         );
-        newHero.PrintHeroStats();
     }
+    Console.WriteLine("END HERO STATS:\n");
+    newHero.PrintHeroStats();
         
     Console.WriteLine("Do you want to play again? (yes/no)");
     gameLoop = Utils.ConfirmationDialog();
@@ -107,11 +108,12 @@ GameState PlayDungeon(Hero hero)
     for(int i = 0; i < NUMBER_OF_DUNGEON_WAVES; i++)
     {
         var enemy = CreateEnemyWave();
+        
+        
         Console.WriteLine(
             $"DUNGEON WAVE {i+1}:\n" +
             $"**********************************\n");
         PrintHeroAndEnemyStats(hero, enemy);
-
         Console.WriteLine("Continue to start the fight! Press any key...");
         Utils.ConsoleClearAndContinue();
 
@@ -121,22 +123,13 @@ GameState PlayDungeon(Hero hero)
         );
         bool heroAlive = FightEnemy(hero, enemy);
         
-        if(!heroAlive && (hero is Enchanter))
+        /*if(!heroAlive && (hero is Enchanter))
         {
             var enchanter = hero as Enchanter;
-            if (enchanter!.HasRevive)
-            {
-                Console.WriteLine("Enchnter hero has died, do you want to use Revive? (yes/no)");
-                if (Utils.ConfirmationDialog() == GameLoop.CONTINUE)
-                    enchanter.ReviveAbility();
-            }
-            else {
-                Console.WriteLine("Revive ability has been used before\n");
                 return GameState.LOSS;
-            }
                 
-        }
-        else if(!heroAlive)
+        }*/
+        if(!heroAlive)
             return GameState.LOSS;
 
         if (i == NUMBER_OF_DUNGEON_WAVES - 1)
@@ -145,11 +138,15 @@ GameState PlayDungeon(Hero hero)
         Console.Clear();
         PrintHeroAndEnemyStats(hero, enemy);
         Thread.Sleep(1500);
-        Console.WriteLine($"YOU HAVE DEFATED THE {enemy.Type}!\n" +
-            $"***********************************\n");
+        Console.WriteLine(
+            $"YOU HAVE DEFATED THE {enemy.Type}!\n" +
+            $"***********************************\n"
+        );
+
         Console.WriteLine($"You gained: {enemy.XP} XP");
         hero.GainExperienceAndLevelUp(enemy.XP);
         hero.RegainHealthAfterBattle();
+        Console.WriteLine("Continue to next enemy. ");
         Utils.ConsoleClearAndContinue();
 
         if (hero.XP > 0 && hero.HP < hero.HPThreshold)
@@ -160,9 +157,9 @@ GameState PlayDungeon(Hero hero)
                 var amount = InputExperiance(hero);
                 hero.SpendXPforHP(amount);
             }
+            Console.Clear();
         } 
-        Console.WriteLine("Continue to next enemy. ");
-        Utils.ConsoleClearAndContinue();
+
     }
     return GameState.WIN;
 }
@@ -172,18 +169,17 @@ bool FightEnemy(Hero hero, Enemy enemy)
     int round = 1;
     while(hero.HP > 0 && enemy.HP > 0)
     {
-        PrintHeroAndEnemyStats(hero, enemy);
         Console.WriteLine(
             $"\nROUND {round++} :\n" +
             $"*********************\n"
         );
-
+        PrintHeroAndEnemyStats(hero, enemy);
         hero.UseHeroAbility();
         InitiateCombatAndDecideOutcome(hero, enemy);
-        Utils.ConsoleClearAndContinue();
-
-        PrintHeroAndEnemyStats(hero, enemy);
+        //Utils.ConsoleClearAndContinue();
         Console.Clear();
+        PrintHeroAndEnemyStats(hero, enemy);
+        
     }
     return hero.HP > 0;
 }
@@ -240,7 +236,6 @@ void InitiateCombatAndDecideOutcome(Hero hero, Enemy enemy)
         Thread.Sleep(1000);
 
         hero.BasicAttack(enemy);
-        Console.WriteLine($"You damaged {enemy.Type} for {hero.Damage}");
         
     }
     else if (combatOutcome == CombatOutcome.LOSE)
@@ -254,11 +249,22 @@ void InitiateCombatAndDecideOutcome(Hero hero, Enemy enemy)
         Console.WriteLine($"Both Hero and Enemy used {AttacksString[heroAttack]} attack, DRAW!\n");
     }
 
-    if (hero is Gladiator)
-    {
+    if (hero is Gladiator){
         var gladiator = hero as Gladiator;
-        if(gladiator!.Damage > gladiator!.BaseDamage)
+        if (gladiator!.isRageActive == false)
             gladiator.Damage = gladiator.BaseDamage;
+    }
+    else if (hero is Enchanter && hero.HP <= 0)
+    {
+        var enchanter = hero as Enchanter;
+        if (enchanter!.HasRevive)
+        {
+            Console.WriteLine("Enchnter hero has died, do you want to use Revive? (yes/no)");
+            if (Utils.ConfirmationDialog() == GameLoop.CONTINUE)
+                enchanter.ReviveAbility();
+        }
+        else
+            Console.WriteLine("Revive ability has been used before\n");
     }
 }
 Enemy CreateEnemyWave()

@@ -22,9 +22,17 @@ namespace Domain.Repositories
 
         public void HealAbility()
         {
-            if (Mana >= 50)
+            if (Mana >= 50 && HP < HPThreshold)
             {
-                HP += 250;
+                if(HP + 250 >= HPThreshold)
+                {
+                    HP = HPThreshold;
+                    Console.WriteLine("Healed to full!\n");
+                }
+                else {  
+                    HP += 250;
+                    Console.WriteLine("Healed for 250 HP!\n");
+                }
                 Mana -= 50;
                 PrintHeroStats();
             }
@@ -42,6 +50,7 @@ namespace Domain.Repositories
             if (Mana >= 15)
             {
                 Mana -= 15;
+                Console.WriteLine($"-{Mana} for attack\n");
                 enemy.HP -= Damage;
             }
             else
@@ -55,6 +64,8 @@ namespace Domain.Repositories
         {
             if (Mana < 50)
                 Console.WriteLine("Not enough mana to use Heal Ability\n");
+            else if(HP == HPThreshold)
+                Console.WriteLine("HP is already full, can't use Heal\n");
             else
             {
                 Console.WriteLine("Do you want to use Heal Ablity? (yes/no)");

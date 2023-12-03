@@ -7,9 +7,9 @@ namespace Data.Utils
     {
         public static void ConsoleClearAndContinue()
         {
-            Console.Clear();
             Console.WriteLine("Press any key to continue...");
             Console.ReadKey();
+            Console.Clear();
         }
 
         public static GameLoop ConfirmationDialog()

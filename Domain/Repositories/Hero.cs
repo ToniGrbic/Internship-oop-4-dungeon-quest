@@ -30,21 +30,20 @@ public class Hero
                 $"***************************"
             );
             XP = (XP + gainedXP) - XPThreshold;
-            HPThreshold += 50;
-
+            HPThreshold += 25;
+            Damage += 10;
             if (this is Gladiator gladiator)
                 gladiator.BaseDamage += 15;
-            Damage += 15;
-
+            
             if (this is Enchanter enchanter)
             {
-                enchanter.ManaThreshold += 50;
+                enchanter.ManaThreshold += 10;
                 enchanter.Mana = enchanter.ManaThreshold;
             }
         }
         else
             XP += gainedXP;
-        HP += 50;
+        
     }
     public void SpendXPforHP(int amount)
     {
@@ -85,11 +84,19 @@ public class Hero
                 $"HERO: {Name}\n" +
                 $"Trait: {Trait}\n" +
                 $"Level: {Level}\n" +
-                $"HP: {HP} / {HPThreshold}\n" +
                 $"XP: {XP} / {XPThreshold}\n" +
-                $"Damage: {Damage}"
+                $"HP: {HP} / {HPThreshold}\n" +
+                $"{HasMana()}" +
+                $"Damage: {Damage}\n"
         );
     }
-    
+    public string HasMana()
+    {
+        return (
+            this is Enchanter enchanter  
+            ? $"Mana:{enchanter.Mana} / {enchanter.ManaThreshold}\n" 
+            : ""
+       );
+    }
 }
 
