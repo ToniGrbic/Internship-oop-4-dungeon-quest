@@ -16,5 +16,16 @@ namespace Domain.Repositories
         {
             hero.HP -= this.Damage;
         }
+
+        public void PrintEnemyStats()
+        {
+            Console.WriteLine(
+                    $"ENEMY: {Type}\n" +
+                    $"HP: {HP}\n" +
+                    $"Damage: {Damage}\n"
+            );
+        }
     }
 }
+
+

@@ -5,14 +5,22 @@ namespace Domain.Repositories;
 
     public class Gladiator : Hero
     {
-        public int Rage { get; set; }
+        public float RageHealthCostPercent { get; set; }
+        public int BaseDamage { get; set; }
         public Gladiator(string Name) : base(Name)
         {
-            this.Rage = 0;
+            RageHealthCostPercent = 0.15f;
             this.HP = (int)HeroHP.Gladiator;
             this.HPTheshold = (int)HeroHP.Gladiator;
+            this.BaseDamage = (int)HeroDamage.Gladiator;
             this.Damage = (int)HeroDamage.Gladiator;
             this.Trait = "Gladiator";
+        }
+
+        public void RageAbility()
+        {
+           this.HP -= (int)(this.HPTheshold * RageHealthCostPercent);
+           this.Damage *= 2;
         }
     }
 
