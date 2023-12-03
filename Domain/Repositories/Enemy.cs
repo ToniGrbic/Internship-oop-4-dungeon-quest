@@ -4,6 +4,7 @@ namespace Domain.Repositories
     public class Enemy
     {
         public int HP { get; set; }
+        public int HPThreshold { get; set; }
         public int XP { get; set; }
         public int Damage { get; set; }
         public string Type { get; set; }
@@ -14,15 +15,16 @@ namespace Domain.Repositories
         }
         public void BasicAttack(Hero hero)
         {
-            hero.HP -= this.Damage;
+            hero.HP -= Damage;
         }
 
         public void PrintEnemyStats()
         {
             Console.WriteLine(
                     $"ENEMY: {Type}\n" +
-                    $"HP: {HP}\n" +
-                    $"Damage: {Damage}\n"
+                    $"HP: {HP} / {HPThreshold}\n" +
+                    $"Damage: {Damage}\n" +
+                    $"XP: {XP}\n"
             );
         }
     }
