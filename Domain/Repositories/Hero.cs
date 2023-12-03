@@ -10,7 +10,7 @@ public class Hero
     public int Level { get; set; }
     public string? Trait { get; set; }
     public virtual void BasicAttack(Enemy enemy) { }
-    
+    public virtual void UseHeroAbility() { }
     public Hero(string name)
     {
         Name = name;
@@ -76,7 +76,7 @@ public class Hero
             HP += HPToGain;
             Console.WriteLine($"Healed for: {HPToGain}\n");
         }
-        this.PrintHeroStats();
+        PrintHeroStats();
 
     }
     public void PrintHeroStats()

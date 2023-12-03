@@ -1,8 +1,7 @@
 ﻿// See https://aka.ms/new-console-template for more information
 using Domain.Repositories;
 using Data.Constants;
-using System.Runtime.InteropServices;
-using System;
+using Data.Utils;
 
 GameLoop gameLoop = GameLoop.CONTINUE;
 GameState gameState = GameState.IN_PROGRESS;
@@ -53,7 +52,7 @@ do{
     else if (choice != 1 || !success)
     {
         Console.WriteLine("Invalid input, try again\n");
-        ConsoleClearAndContiue();
+        Utils.ConsoleClearAndContinue();
         continue;
     }
 
@@ -75,14 +74,14 @@ do{
         continue;
     }
 
-    var heroName = InputNonEmpryStringFormat("Hero name");
+    var heroName = Utils.InputNonEmptyStringFormat("Hero name");
     var newHero = heroTraitChoice[choice].Invoke(heroName);
 
     Console.Clear();
     newHero.PrintHeroStats();
 
     Console.WriteLine("Ready to start the game?\n");
-    ConsoleClearAndContiue();
+    Utils.ConsoleClearAndContinue();
 
     gameState = PlayDungeon(newHero);
 
@@ -98,7 +97,7 @@ do{
     }
         
     Console.WriteLine("Do you want to play again? (yes/no)");
-    gameLoop = ConfirmationDialog();
+    gameLoop = Utils.ConfirmationDialog();
     Console.Clear();
 
 } while (gameLoop == GameLoop.CONTINUE);
@@ -114,7 +113,7 @@ GameState PlayDungeon(Hero hero)
         PrintHeroAndEnemyStats(hero, enemy);
 
         Console.WriteLine("Continue to start the fight! Press any key...");
-        ConsoleClearAndContiue();
+        Utils.ConsoleClearAndContinue();
 
         Console.WriteLine(
             "\nFIGHT STARTED!!\n" +
@@ -128,7 +127,7 @@ GameState PlayDungeon(Hero hero)
             if (enchanter!.HasRevive)
             {
                 Console.WriteLine("Enchnter hero has died, do you want to use Revive? (yes/no)");
-                if (ConfirmationDialog() == GameLoop.CONTINUE)
+                if (Utils.ConfirmationDialog() == GameLoop.CONTINUE)
                     enchanter.ReviveAbility();
             }
             else {
@@ -145,26 +144,25 @@ GameState PlayDungeon(Hero hero)
 
         Console.Clear();
         PrintHeroAndEnemyStats(hero, enemy);
-        Console.WriteLine("Calculating...");
         Thread.Sleep(1500);
         Console.WriteLine($"YOU HAVE DEFATED THE {enemy.Type}!\n" +
             $"***********************************\n");
         Console.WriteLine($"You gained: {enemy.XP} XP");
         hero.GainExperienceAndLevelUp(enemy.XP);
         hero.RegainHealthAfterBattle();
-        ConsoleClearAndContiue();
+        Utils.ConsoleClearAndContinue();
 
         if (hero.XP > 0 && hero.HP < hero.HPThreshold)
         {
             Console.WriteLine("Do you want to spend your XP for Healh? (yes/no)");
-            if (ConfirmationDialog() == GameLoop.CONTINUE)
+            if (Utils.ConfirmationDialog() == GameLoop.CONTINUE)
             {
                 var amount = InputExperiance(hero);
                 hero.SpendXPforHP(amount);
             }
         } 
         Console.WriteLine("Continue to next enemy. ");
-        ConsoleClearAndContiue();
+        Utils.ConsoleClearAndContinue();
     }
     return GameState.WIN;
 }
@@ -180,51 +178,15 @@ bool FightEnemy(Hero hero, Enemy enemy)
             $"*********************\n"
         );
 
-        UseHeroAbility(hero);
+        hero.UseHeroAbility();
         InitiateCombatAndDecideOutcome(hero, enemy);
-        ConsoleClearAndContiue();
+        Utils.ConsoleClearAndContinue();
 
         PrintHeroAndEnemyStats(hero, enemy);
         Console.Clear();
     }
     return hero.HP > 0;
 }
-
-void UseHeroAbility(Hero hero)
-{
-    if (hero is Gladiator)
-    {
-        var gladiator = hero as Gladiator;
-        if (hero.HPThreshold * gladiator!.RageHealthCostPercent >= hero.HP)
-            Console.WriteLine("Not enough HP to use Rage Ability\n");
-        else
-        {
-            Console.WriteLine("Do you want to use Rage Ability? (yes/no)");
-            if (ConfirmationDialog() == GameLoop.CONTINUE)
-                gladiator.RageAbility();
-        }
-    }
-    else if (hero is Enchanter)
-    {
-        var enchanter = hero as Enchanter;
-
-        if (enchanter!.Mana < 50)
-            Console.WriteLine("Not enough mana to use Heal Ability\n");
-        else
-        {
-            Console.WriteLine("Do you want to use Heal Ablity? (yes/no)");
-            if (ConfirmationDialog() == GameLoop.CONTINUE)
-                enchanter.HealAbility();
-        }
-    }
-    else if (hero is Marksman)
-    {
-        Console.WriteLine("Do you want to use Marksman Attack? (yes/no)");
-        if (ConfirmationDialog() == GameLoop.CONTINUE) ;
-        //(hero as Marksman)!.MarksmanAttack(enemy);
-    }
-}
-
 AttackType HeroChooseAttack()
 {
     Console.WriteLine(
@@ -302,48 +264,9 @@ void InitiateCombatAndDecideOutcome(Hero hero, Enemy enemy)
 Enemy CreateEnemyWave()
 {
    var random = new Random();
-   var enemyType = EnemyChoiceProbability();
+   var enemyType = Utils.EnemyChoiceProbability();
    var enemy = enemies[enemyType].Invoke();
    return enemy;
-}
-
-int EnemyChoiceProbability()
-{
-    var random = new Random();
-    var choice = random.Next(1, 101);
-    if(choice <= 60)
-        return 1;
-    else if(choice > 60 && choice <= 80)
-        return 2;
-    else
-        return 3;
-}
-
-string InputNonEmpryStringFormat(string message = "Input")
-{
-    string? input;
-    bool isError;
-    do{
-        Console.WriteLine(message + ": \n");
-        input = Console.ReadLine();
-        isError = string.IsNullOrWhiteSpace(input);
-        if (isError)
-            Console.WriteLine(message + "cannot be a empty string, try again...\n");
-    } while (isError);
-    return input!;
-}
-
-int InputIntFormat(string message = "Input")
-{
-    int input;
-    bool isError;
-    do{
-        Console.WriteLine(message + ": \n");
-        isError = !int.TryParse(Console.ReadLine(), out input);
-        if (isError)
-            Console.WriteLine(message + "must be a number, try again...\n");
-    } while (isError);
-    return input;
 }
 
 int InputExperiance(Hero hero)
@@ -354,7 +277,7 @@ int InputExperiance(Hero hero)
         
         Console.WriteLine($"CURRENT XP: {hero.XP} / {hero.XPThreshold}\n");
         Console.WriteLine($"CURRENT HP: {hero.HP} / {hero.HPThreshold}\n");
-        amount = InputIntFormat($"Input amount of XP to spend (MAX is {halfXP})");
+        amount = Utils.InputIntFormat($"Input amount of XP to spend (MAX is {halfXP})");
         if (amount > halfXP)
         {
             Console.WriteLine("Not enough XP, try again\n");
@@ -371,30 +294,6 @@ void PrintHeroAndEnemyStats(Hero hero, Enemy enemy)
     Console.WriteLine(
         "\n************** VS ***************\n");
     enemy.PrintEnemyStats();
-}
+} 
 
-void ConsoleClearAndContiue()
-{
-    Console.WriteLine("Press any key to continue...");
-    Console.ReadKey();
-    Console.Clear();
-}   
 
-GameLoop ConfirmationDialog()
-{
-    string choice;
-    do{
-        choice = Console.ReadLine()!.ToLower();
-        if (choice == "" || (choice != "yes" && choice != "no"))
-        {
-            Console.WriteLine("Invalid input, try again\n");
-            continue;
-        }
-        break;
-    } while (true);
-
-    if(choice!.ToLower() == "yes")
-        return GameLoop.CONTINUE;
-    
-    return GameLoop.EXIT;
-}
