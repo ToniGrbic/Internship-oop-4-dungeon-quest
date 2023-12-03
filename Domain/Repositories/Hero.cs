@@ -1,4 +1,6 @@
-﻿namespace Domain.Repositories;
+﻿using System;
+
+namespace Domain.Repositories;
 public class Hero
 {
     public string Name { get; set; }
@@ -21,6 +23,7 @@ public class Hero
     }
     public void GainExperienceAndLevelUp(int gainedXP)
     {
+        Console.WriteLine($"You gained: {gainedXP} XP\n");
         if(XP + gainedXP >= XPThreshold)
         {
             ++Level;
@@ -33,17 +36,20 @@ public class Hero
             HPThreshold += 25;
             Damage += 10;
             if (this is Gladiator gladiator)
-                gladiator.BaseDamage += 15;
-            
-            if (this is Enchanter enchanter)
+                gladiator.BaseDamage += 10;
+            else if (this is Enchanter enchanter)
             {
                 enchanter.ManaThreshold += 10;
                 enchanter.Mana = enchanter.ManaThreshold;
             }
+            else if (this is Marksman marksman)
+            {
+                marksman.CriticalStrikeChance += 0.08f;
+                marksman.StunChance += 0.07f;
+            }
         }
         else
             XP += gainedXP;
-        
     }
     public void SpendXPforHP(int amount)
     {
@@ -82,11 +88,13 @@ public class Hero
     {
         Console.WriteLine(
                 $"HERO: {Name}\n" +
+                $"********************\n" +
                 $"Trait: {Trait}\n" +
                 $"Level: {Level}\n" +
                 $"XP: {XP} / {XPThreshold}\n" +
                 $"HP: {HP} / {HPThreshold}\n" +
                 $"{HasMana()}" +
+                $"{HasStrikeAndStunChance()}" +
                 $"Damage: {Damage}\n"
         );
     }
@@ -96,7 +104,15 @@ public class Hero
             this is Enchanter enchanter  
             ? $"Mana:{enchanter.Mana} / {enchanter.ManaThreshold}\n" 
             : ""
-       );
+        );
+    }
+    public string HasStrikeAndStunChance()
+    {
+        return (
+              this is Marksman marksman
+              ? $"Crit Chance: {(marksman.CriticalStrikeChance * 100):0.0}%\n" +
+                $"Stun Chance: {(marksman.StunChance * 100):0.0}%\n" : ""
+        );
     }
 }
 

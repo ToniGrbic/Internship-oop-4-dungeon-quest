@@ -1,55 +1,63 @@
 ﻿
 using Data.Constants;
 using Data.Utils;
-using System;
 
 namespace Domain.Repositories;
 
 public class Marksman : Hero
 {
-    public float CriticChance { get; set; }
+    public float CriticalStrikeChance { get; set; }
     public float StunChance { get; set; }
-
+    public bool isCritStrike { get; set; }
+    public bool isStunAttack { get; set; }
     public Marksman(string name) : base(name)
     {
         this.Damage = (int)HeroDamage.Marksman;
         this.HP = (int)HeroHP.Marksman;
         this.HPThreshold = (int)HeroHP.Marksman;
         this.Trait = "Marksman";
+        CriticalStrikeChance = 0.40f;
+        StunChance = 0.30f;
+        isCritStrike = false;
+        isStunAttack = false;
     }
-
     public void MarksmanAttack()
     {
-        Random random = new Random();
-        int randomNumber = random.Next(1, 101);
-        if (randomNumber <= 20)
-        {
-            Console.WriteLine("You have stunned the enemy!");
-            StunChance = 1;
-        }
-        else
-        {
-            Console.WriteLine("You have not stunned the enemy!");
-            StunChance = 0;
-        }
-        randomNumber = random.Next(1, 101);
-        if (randomNumber <= 20)
-        {
-            Console.WriteLine("You have critically hit the enemy!");
-            CriticChance = 1;
-        }
-        else
-        {
-            Console.WriteLine("You have not critically hit the enemy!");
-            CriticChance = 0;
-        }
-    }
+        var random = new Random();
+        var choice = random.Next(1, 101);
+        var CritChanceOdds = CriticalStrikeChance * 100;
+        if (choice <= CritChanceOdds)
+            isCritStrike = true;
 
-    public override void UseHeroAbility()
+        choice = random.Next(1, 101);
+        var StunChanceOdds = StunChance * 100;
+        if (choice <= StunChanceOdds)
+            isStunAttack = true;
+    }
+    public override void BasicAttack(Enemy enemy)
     {
-        Console.WriteLine("Do you want to use Marksman Attack? (yes/no)");
-        if (Utils.ConfirmationDialog() == GameLoop.CONTINUE) ;
         MarksmanAttack();
+
+        if(isCritStrike)
+        {
+            enemy.HP -= Damage * 2;
+            Console.WriteLine("CRITICAL STRIKE!");
+            Console.WriteLine($"You damaged the {enemy.Type} for {Damage * 2}\n");
+            isCritStrike = false;
+        }
+        else
+        {
+            enemy.HP -= Damage;
+            Console.WriteLine($"You damaged the {enemy.Type} for {Damage}");
+        }
+           
+        if(isStunAttack)
+        {
+            enemy.IsStunned = true;
+            Console.WriteLine($"The enemy {enemy.Type} is stunned!\n");
+            isStunAttack = false;
+        }
+       
     }
 }
 

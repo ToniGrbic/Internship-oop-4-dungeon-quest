@@ -1,4 +1,6 @@
 ﻿
+using System;
+
 namespace Domain.Repositories
 {
     public class Enemy
@@ -8,14 +10,17 @@ namespace Domain.Repositories
         public int XP { get; set; }
         public int Damage { get; set; }
         public string Type { get; set; }
+        public bool IsStunned { get; set; }
         
         public Enemy()
         {
            Type = "";
+           IsStunned = false;
         }
         public void BasicAttack(Hero hero)
         {
             hero.HP -= Damage;
+            Console.WriteLine($"Enemy {Type} has damaged you for {Damage}");
         }
 
         public void PrintEnemyStats()

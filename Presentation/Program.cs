@@ -14,6 +14,13 @@ Dictionary<int, Func<string, Hero>>heroTraitChoice = new()
     {3, name => new Enchanter(name)}
 };
 
+Dictionary<int, Func<Enemy>> enemies= new()
+{
+    {1, () => new Goblin()},
+    {2, () => new Brute()},
+    {3, () => new Witch()}
+};
+
 Dictionary<int, AttackType> Attacks = new()
 {
     {1, AttackType.DIRECT},
@@ -26,13 +33,6 @@ Dictionary<AttackType, string> AttacksString = new()
     {AttackType.DIRECT, "Direct"},
     {AttackType.SIDE, "Side"},
     {AttackType.COUNTER, "Counter"}
-};
-
-Dictionary<int, Func<Enemy>> enemies= new()
-{
-    {1, () => new Goblin()},
-    {2, () => new Brute()},
-    {3, () => new Witch()}
 };
 
 do{
@@ -109,7 +109,6 @@ GameState PlayDungeon(Hero hero)
     {
         var enemy = CreateEnemyWave();
         
-        
         Console.WriteLine(
             $"DUNGEON WAVE {i+1}:\n" +
             $"**********************************\n");
@@ -118,17 +117,11 @@ GameState PlayDungeon(Hero hero)
         Utils.ConsoleClearAndContinue();
 
         Console.WriteLine(
-            "\nFIGHT STARTED!!\n" +
+            "FIGHT STARTED!!\n" +
             "***************************\n"
         );
         bool heroAlive = FightEnemy(hero, enemy);
         
-        /*if(!heroAlive && (hero is Enchanter))
-        {
-            var enchanter = hero as Enchanter;
-                return GameState.LOSS;
-                
-        }*/
         if(!heroAlive)
             return GameState.LOSS;
 
@@ -143,9 +136,9 @@ GameState PlayDungeon(Hero hero)
             $"***********************************\n"
         );
 
-        Console.WriteLine($"You gained: {enemy.XP} XP");
         hero.GainExperienceAndLevelUp(enemy.XP);
         hero.RegainHealthAfterBattle();
+
         Console.WriteLine("Continue to next enemy. ");
         Utils.ConsoleClearAndContinue();
 
@@ -159,7 +152,6 @@ GameState PlayDungeon(Hero hero)
             }
             Console.Clear();
         } 
-
     }
     return GameState.WIN;
 }
@@ -169,17 +161,15 @@ bool FightEnemy(Hero hero, Enemy enemy)
     int round = 1;
     while(hero.HP > 0 && enemy.HP > 0)
     {
+        PrintHeroAndEnemyStats(hero, enemy);
         Console.WriteLine(
-            $"\nROUND {round++} :\n" +
+            $"ROUND {round++} :\n" +
             $"*********************\n"
         );
-        PrintHeroAndEnemyStats(hero, enemy);
-        hero.UseHeroAbility();
+        if (hero is not Marksman)
+            hero.UseHeroAbility();
         InitiateCombatAndDecideOutcome(hero, enemy);
-        //Utils.ConsoleClearAndContinue();
-        Console.Clear();
-        PrintHeroAndEnemyStats(hero, enemy);
-        
+        Utils.ConsoleClearAndContinue();
     }
     return hero.HP > 0;
 }
@@ -208,45 +198,54 @@ AttackType EnemyChooseAttack()
     return Attacks[choice];
 }
 
-CombatOutcome IsHeroWinner(AttackType heroAttack, AttackType enemyAttack)
+CombatOutcome IsHeroWinner(AttackType heroAttack, AttackType enemyAttack, Enemy enemy)
 {
+    if (enemy.IsStunned)
+        return CombatOutcome.WIN;
+        
     if(heroAttack == AttackType.DIRECT && enemyAttack == AttackType.SIDE)
         return CombatOutcome.WIN;
-    else if(heroAttack == AttackType.SIDE && enemyAttack == AttackType.COUNTER)
+    if(heroAttack == AttackType.SIDE && enemyAttack == AttackType.COUNTER)
         return CombatOutcome.WIN;
-    else if(heroAttack == AttackType.COUNTER && enemyAttack == AttackType.DIRECT)
+    if(heroAttack == AttackType.COUNTER && enemyAttack == AttackType.DIRECT)
         return CombatOutcome.WIN;
-    else if (heroAttack == enemyAttack)
+    if (heroAttack == enemyAttack)
         return CombatOutcome.DRAW;  
-    else
-        return CombatOutcome.LOSE;
+    
+    return CombatOutcome.LOSE;
 }
 
 void InitiateCombatAndDecideOutcome(Hero hero, Enemy enemy)
 {
     var heroAttack = HeroChooseAttack();
     var enemyAttack = EnemyChooseAttack();
-    var combatOutcome = IsHeroWinner(heroAttack, enemyAttack);
+    var combatOutcome = IsHeroWinner(heroAttack, enemyAttack, enemy);
     Console.WriteLine("Attacking...");
-    Thread.Sleep(2000);
+    Thread.Sleep(1000);
 
-    if (combatOutcome == CombatOutcome.WIN)
+    if (combatOutcome == CombatOutcome.WIN && enemy.IsStunned)
+    {
+        Console.WriteLine($"Enemy {enemy.Type} is stunned, Hero wins round!\n");
+        Thread.Sleep(1000);
+        hero.BasicAttack(enemy);
+        enemy.IsStunned = false;
+    }
+    else if (combatOutcome == CombatOutcome.WIN)
     {
         Console.WriteLine($"Hero uses {AttacksString[heroAttack]} attack and beats Enemy {AttacksString[enemyAttack]} attack\n");
         Thread.Sleep(1000);
-
         hero.BasicAttack(enemy);
-        
     }
     else if (combatOutcome == CombatOutcome.LOSE)
     {
         Console.WriteLine($"Enemy uses {AttacksString[enemyAttack]} attack and beats Hero {AttacksString[heroAttack]} attack\n");
         Thread.Sleep(1000);
         enemy.BasicAttack(hero);
-        Console.WriteLine($"Enemy {enemy.Type} has damaged you for {enemy.Damage}");
     }
-    else{
+    else
+    {
         Console.WriteLine($"Both Hero and Enemy used {AttacksString[heroAttack]} attack, DRAW!\n");
+        return;
     }
 
     if (hero is Gladiator){

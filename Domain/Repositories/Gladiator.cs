@@ -36,6 +36,7 @@ public class Gladiator : Hero
             HP -= (int)(HPThreshold * this.RageHealthCostPercent);
             this.isRageActive = false;
             enemy.HP -= Damage;
+            Console.WriteLine($"You damaged the {enemy.Type} for {Damage}");
         }
         else
             enemy.HP -= Damage;

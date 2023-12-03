@@ -7,16 +7,20 @@ namespace Domain.Repositories
     public class Enchanter : Hero
     {
         public int Mana { get; set; }
+
+        public int ManaCostAttack { get; set; }
         public int ManaThreshold { get; set; }
         public bool HasRevive { get; set; }
         public Enchanter(string name) : base(name)
         {
             this.Trait = "Enchanter";
-            this.HP = (int)HeroHP.Enchanter;
             this.HPThreshold = (int)HeroHP.Enchanter;
+            this.HP = HPThreshold;
             this.Damage = (int)HeroDamage.Enchanter;
+
             ManaThreshold = (int)ManaAmount.Enchanter;
             Mana = ManaThreshold;
+            ManaCostAttack = 15;
             HasRevive = true;
         }
 
@@ -47,11 +51,13 @@ namespace Domain.Repositories
 
         public override void BasicAttack(Enemy enemy)
         {
-            if (Mana >= 15)
+            if (Mana >= ManaCostAttack)
             {
-                Mana -= 15;
-                Console.WriteLine($"-{Mana} for attack\n");
+                Mana -= ManaCostAttack;
+                Console.WriteLine($"-15 Mana for attack\n");
+                
                 enemy.HP -= Damage;
+                Console.WriteLine($"You damaged the {enemy.Type} for {Damage}");
             }
             else
             {
@@ -63,15 +69,18 @@ namespace Domain.Repositories
         public override void UseHeroAbility()
         {
             if (Mana < 50)
-                Console.WriteLine("Not enough mana to use Heal Ability\n");
+                Console.WriteLine("Not enough mana to use Heal Ability");
             else if(HP == HPThreshold)
-                Console.WriteLine("HP is already full, can't use Heal\n");
+            {
+                Console.WriteLine("HP is already full, can't use Heal");
+            }
             else
             {
                 Console.WriteLine("Do you want to use Heal Ablity? (yes/no)");
                 if (Utils.ConfirmationDialog() == GameLoop.CONTINUE)
                     HealAbility();
             }
+            Utils.ConsoleClearAndContinue();
         }
     }
 }
