@@ -29,8 +29,6 @@ Dictionary<AttackType, string> AttacksString = new()
     {AttackType.COUNTER, "Counter"}
 };
 
-
-
 Dictionary<int, Func<Enemy>> enemies= new()
 {
     {1, () => new Goblin()},
@@ -65,7 +63,7 @@ do{
         "*********************\n" +
         "Choose your Hero's Trait: \n" +
                "1 - Gladiator\n" +
-               "2 - Marksman\n" +
+               "2 - Marksman -> work in proggres\n" +
                "3 - Enchanter\n"
     );
 
@@ -113,11 +111,7 @@ GameState PlayDungeon(Hero hero)
         Console.WriteLine(
             $"DUNGEON WAVE {i+1}:\n" +
             $"**********************************\n");
-
-        hero.PrintHeroStats();
-        Console.WriteLine(
-            "\n************** VS ***************\n");
-        enemy.PrintEnemyStats();
+        PrintHeroAndEnemyStats(hero, enemy);
 
         Console.WriteLine("Continue to start the fight! Press any key...");
         ConsoleClearAndContiue();
@@ -150,10 +144,12 @@ GameState PlayDungeon(Hero hero)
             break;
 
         Console.Clear();
-        enemy.PrintEnemyStats();
-
-        Console.WriteLine($"YOU HAVE DEFATED THE {enemy.Type}!");
-        Console.WriteLine($"You gained: {enemy.XP} XP\n");
+        PrintHeroAndEnemyStats(hero, enemy);
+        Console.WriteLine("Calculating...");
+        Thread.Sleep(1500);
+        Console.WriteLine($"YOU HAVE DEFATED THE {enemy.Type}!\n" +
+            $"***********************************\n");
+        Console.WriteLine($"You gained: {enemy.XP} XP");
         hero.GainExperienceAndLevelUp(enemy.XP);
         hero.RegainHealthAfterBattle();
         ConsoleClearAndContiue();
@@ -188,10 +184,7 @@ bool FightEnemy(Hero hero, Enemy enemy)
         InitiateCombatAndDecideOutcome(hero, enemy);
         ConsoleClearAndContiue();
 
-        hero.PrintHeroStats();
-        Console.WriteLine(
-            "\n*********** VS ************\n");
-        enemy.PrintEnemyStats();
+        PrintHeroAndEnemyStats(hero, enemy);
         Console.Clear();
     }
     return hero.HP > 0;
@@ -283,8 +276,10 @@ void InitiateCombatAndDecideOutcome(Hero hero, Enemy enemy)
     {
         Console.WriteLine($"Hero uses {AttacksString[heroAttack]} attack and beats Enemy {AttacksString[enemyAttack]} attack\n");
         Thread.Sleep(1000);
+
         hero.BasicAttack(enemy);
         Console.WriteLine($"You damaged {enemy.Type} for {hero.Damage}");
+        
     }
     else if (combatOutcome == CombatOutcome.LOSE)
     {
@@ -357,9 +352,9 @@ int InputExperiance(Hero hero)
     int halfXP = hero.XP / 2;
     do{
         
-        Console.WriteLine($"CURRENT XP: {hero.XP} / {hero.XPThreshold}");
-        Console.WriteLine($"CURRENT HP: {hero.HP} / {hero.HPThreshold}");
-        amount = InputIntFormat($"Input amount of XP to spend (MAX is {halfXP}");
+        Console.WriteLine($"CURRENT XP: {hero.XP} / {hero.XPThreshold}\n");
+        Console.WriteLine($"CURRENT HP: {hero.HP} / {hero.HPThreshold}\n");
+        amount = InputIntFormat($"Input amount of XP to spend (MAX is {halfXP})");
         if (amount > halfXP)
         {
             Console.WriteLine("Not enough XP, try again\n");

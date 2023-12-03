@@ -33,5 +33,19 @@ namespace Domain.Repositories
             Mana = ManaThreshold; 
             HasRevive = false;
         }
+
+        public override void BasicAttack(Enemy enemy)
+        {
+            if (this.Mana >= 15)
+            {
+                this.Mana -= 15;
+                enemy.HP -= Damage;
+            }
+            else
+            {
+                Console.WriteLine("Not enough mana for attack, regaining mana for this round.\n");
+                this.Mana = this.ManaThreshold;
+            }
+        }
     }
 }

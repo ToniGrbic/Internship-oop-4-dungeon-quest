@@ -25,5 +25,19 @@ namespace Domain.Repositories;
            this.Damage *= 2;
            this.isRageActive = true;
         }
+
+    public override void BasicAttack(Enemy enemy)
+    {
+
+            if (this.isRageActive)
+            {
+                Console.WriteLine("Rage is activated!\n");
+                HP -= (int)(HPThreshold * this.RageHealthCostPercent);
+                this.isRageActive = false;
+                enemy.HP -= Damage;
+            }
+            else
+                enemy.HP -= Damage;
+        }
     }
 

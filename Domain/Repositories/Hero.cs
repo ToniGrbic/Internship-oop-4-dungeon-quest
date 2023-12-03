@@ -9,6 +9,8 @@ public class Hero
     public int HP { get; set; }
     public int Level { get; set; }
     public string? Trait { get; set; }
+    public virtual void BasicAttack(Enemy enemy) { }
+    
     public Hero(string name)
     {
         Name = name;
@@ -43,19 +45,6 @@ public class Hero
         else
             XP += gainedXP;
         HP += 50;
-    }
-    public void BasicAttack(Enemy enemy)
-    {
-        enemy.HP -= Damage;
-        if(this is Gladiator gladiator && gladiator.isRageActive)
-        {
-            HP -= (int)(HPThreshold * gladiator.RageHealthCostPercent);
-            gladiator.isRageActive = false;
-        }
-        if (this is Enchanter enchanter)
-        {
-            enchanter.Mana -= 15;
-        }
     }
     public void SpendXPforHP(int amount)
     {
@@ -101,5 +90,6 @@ public class Hero
                 $"Damage: {Damage}"
         );
     }
+    
 }
 
