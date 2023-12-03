@@ -1,11 +1,11 @@
 ﻿// See https://aka.ms/new-console-template for more information
 using Domain.Repositories;
 using Data.Constants;
-using System.Threading.Tasks.Dataflow;
-using System;
+using System.Runtime.InteropServices;
 
 GameLoop gameLoop = GameLoop.CONTINUE;
 GameState gameState = GameState.IN_PROGRESS;
+const int NUMBER_OF_DUNGEON_WAVES = 10;
 
 Dictionary<int, Func<string, Hero>>heroTraitChoice = new()
 {
@@ -13,6 +13,21 @@ Dictionary<int, Func<string, Hero>>heroTraitChoice = new()
     {2, name => new Marksman(name)},
     {3, name => new Enchanter(name)}
 };
+
+Dictionary<int, AttackType> Attacks = new()
+{
+    {1, AttackType.DIRECT},
+    {2, AttackType.SIDE},
+    {3, AttackType.COUNTER}
+};
+
+Dictionary<AttackType, string> AttacksString = new()
+{
+    {AttackType.DIRECT, "Direct"},
+    {AttackType.SIDE, "Side"},
+    {AttackType.COUNTER, "Counter"}
+};
+
 
 
 Dictionary<int, Func<Enemy>> enemies= new()
@@ -65,17 +80,24 @@ do{
     var newHero = heroTraitChoice[choice].Invoke(heroName);
 
     Console.Clear();
-    PrintHeroStats(newHero);
+    newHero.PrintHeroStats();
 
     Console.WriteLine("Ready to start the game?\n");
     ConsoleClearAndContiue();
 
     gameState = PlayDungeon(newHero);
+
     if (gameState == GameState.LOSS)
         Console.WriteLine("You lost the game\n");
     else if (gameState == GameState.WIN)
-        Console.WriteLine("You won the game, Congrats!\n");
-    
+    {
+        Console.WriteLine(
+            "YOU HAVE WON, Congrats!\n\n" +
+            "END HERO STATS:\n"
+        );
+        newHero.PrintHeroStats();
+    }
+        
     Console.WriteLine("Do you want to play again? (yes/no)");
     gameLoop = ConfirmationDialog();
     Console.Clear();
@@ -84,26 +106,63 @@ do{
 
 GameState PlayDungeon(Hero hero)
 {
-    for(int i = 0; i < 10; i++)
+    for(int i = 0; i < NUMBER_OF_DUNGEON_WAVES; i++)
     {
-        PrintHeroStats(hero);
+        Console.WriteLine(
+            $"DUNGEON WAVE {i+1}:\n" +
+            $"**********************************\n");
+        hero.PrintHeroStats();
+        
+        Console.WriteLine(
+            "\n************** VS ***************\n"
+        );
         var enemy = CreateEnemyWave();
-        Console.WriteLine("\n\n");
-        PrintEnemyStats(enemy);
+        enemy.PrintEnemyStats();
 
-        Console.WriteLine("Continue to start the fight! ");
+        Console.WriteLine("Continue to start the fight! Press any key...");
         ConsoleClearAndContiue();
 
-        Console.WriteLine("FIGHT STARTED!!\n");
+        Console.WriteLine(
+            "\nFIGHT STARTED!!\n" +
+            "***************************\n"
+        );
         bool heroAlive = Fight(hero, enemy);
         
-        if(!heroAlive)
+        if(!heroAlive && (hero is Enchanter))
+        {
+            var enchanter = hero as Enchanter;
+            if (enchanter!.HasRevive)
+            {
+                Console.WriteLine("Enchnter hero has died, do you want to use Revive? (yes/no)");
+                if (ConfirmationDialog() == GameLoop.CONTINUE)
+                    enchanter.ReviveAbility();
+            }else
+                Console.WriteLine("Revive ability has been used before\n");
+        }
+        else if(!heroAlive)
             return GameState.LOSS;
-        Console.WriteLine($"YOU HAVE DEFATED the {enemy.Type}!");
 
-        hero.GainXP(enemy.XP);
-        Console.WriteLine($"You gained {enemy.XP} XP\n");
+        if (i == NUMBER_OF_DUNGEON_WAVES - 1)
+            break;
 
+        Console.Clear();
+        enemy.PrintEnemyStats();
+
+        Console.WriteLine($"YOU HAVE DEFATED THE {enemy.Type}!");
+        Console.WriteLine($"You gained: {enemy.XP} XP\n");
+        hero.GainExperienceAndLevelUp(enemy.XP);
+        hero.RegainHealthAfterBattle();
+        ConsoleClearAndContiue();
+
+        if (hero.XP > 0)
+        {
+            Console.WriteLine("Do you want to spend your XP for Healh? (yes/no)");
+            if (ConfirmationDialog() == GameLoop.CONTINUE)
+            {
+                var amount = InputExperiance(hero);
+                hero.SpendXPforHP(amount);
+            }
+        } 
         Console.WriteLine("Continue to next enemy. ");
         ConsoleClearAndContiue();
     }
@@ -115,35 +174,135 @@ bool Fight(Hero hero, Enemy enemy)
     int round = 1;
     while(hero.HP > 0 && enemy.HP > 0)
     {
-        Console.WriteLine($"ROUND {round++} :\n\n");
-        hero.BasicAttack(enemy);
-        enemy.BasicAttack(hero);
-        PrintEnemyStats(enemy);
-        PrintHeroStats(hero);
+        hero.PrintHeroStats();
+        Console.WriteLine(
+            "\n************** VS ***************\n"
+        );
+        enemy.PrintEnemyStats();
+        
+        Console.WriteLine(
+            $"\nROUND {round++} :\n" +
+            $"*********************\n"
+        );
+
+        UseHeroAbility(hero);
+        var heroAttack = HeroChooseAttack();
+        var enemyAttack = EnemyChooseAttack();
+        var combatOutcome = IsHeroWinner(heroAttack, enemyAttack);
+
+        Console.WriteLine("Attacking...");
         Thread.Sleep(2000);
+        if (combatOutcome == CombatOutcome.WIN)
+        {
+            Console.WriteLine($"Hero uses {AttacksString[heroAttack]} attack and beats Enemy {AttacksString[enemyAttack]} attack\n");
+            Thread.Sleep(1000);
+            hero.BasicAttack(enemy);
+            Console.WriteLine($"You damaged {enemy.Type} for {hero.Damage}");
+        }
+        else if(combatOutcome == CombatOutcome.LOSE)
+        {
+            Console.WriteLine($"Enemy uses {AttacksString[enemyAttack]} attack and beats Hero {AttacksString[heroAttack]} attack\n");
+            Thread.Sleep(1000);
+            enemy.BasicAttack(hero);
+            Console.WriteLine($"Enemy {enemy.Type} has damaged you for {enemy.Damage}");
+        }
+        else{
+            Console.WriteLine($"Both Hero and Enemy used {AttacksString[heroAttack]} attack, DRAW!\n");
+        }
+        if (hero is Gladiator)
+        {
+            var gladiator = hero as Gladiator;
+            hero.Damage = gladiator!.BaseDamage;
+        }
+        ConsoleClearAndContiue();
+
+        hero.PrintHeroStats();
+        Console.WriteLine(
+            "\n*********** VS ************\n"
+        );
+        enemy.PrintEnemyStats();
+        Console.Clear();
     }
     if(hero.HP <= 0)
         return false;
     else
         return true;
 }
-void PrintHeroStats(Hero hero)
+
+void UseHeroAbility(Hero hero)
 {
-    Console.WriteLine(
-            $"HERO: {hero.Name}\n" +
-            $"Trait: {hero.Trait}\n" +
-            $"HP: {hero.HP}\n" +
-            $"XP: {hero.XP}\n" +
-            $"Damage: {hero.Damage}\n"
-    );
+    if (hero is Gladiator)
+    {
+        var gladiator = hero as Gladiator;
+        if (hero.HPTheshold * gladiator!.RageHealthCostPercent >= hero.HP)
+            Console.WriteLine("Not enough HP to use Rage Ability\n");
+        else
+        {
+            Console.WriteLine("Do you want to use Rage Ability? (yes/no)");
+            if (ConfirmationDialog() == GameLoop.CONTINUE)
+                gladiator.RageAbility();
+        }
+
+    }
+    else if (hero is Enchanter)
+    {
+        var enchanter = hero as Enchanter;
+
+        if (enchanter!.Mana < 50)
+            Console.WriteLine("Not enough mana to use Heal Ability\n");
+        else
+        {
+            Console.WriteLine("Do you want to use Heal Ablity? (yes/no)");
+            if (ConfirmationDialog() == GameLoop.CONTINUE)
+                enchanter.HealAbility();
+        }
+
+    }
+    else if (hero is Marksman)
+    {
+        Console.WriteLine("Do you want to use Marksman Attack? (yes/no)");
+        if (ConfirmationDialog() == GameLoop.CONTINUE) ;
+        //(hero as Marksman)!.MarksmanAttack(enemy);
+    }
 }
-void PrintEnemyStats(Enemy enemy)
+
+AttackType HeroChooseAttack()
 {
     Console.WriteLine(
-            $"ENEMY: {enemy.Type}\n" +
-            $"HP: {enemy.HP}\n" +
-            $"Damage: {enemy.Damage}\n"
+            "Choose your attack type:\n" +
+            "1. DIRECT\n" +
+            "2. SIDE\n" +
+            "3. COUNTER\n"
     );
+    int choice;
+    bool success;
+    do{
+        success = int.TryParse(Console.ReadLine(), out choice) && Attacks.ContainsKey(choice);
+        if (!success)
+            Console.WriteLine("Invalid input for attack type, try again\n");
+  
+    } while (!success);
+    return Attacks[choice];
+}
+AttackType EnemyChooseAttack()
+{
+    var random = new Random();
+    var choice = random.Next(1, 4);
+    return Attacks[choice];
+}
+
+CombatOutcome IsHeroWinner(AttackType heroAttack, AttackType enemyAttack)
+{
+    if(heroAttack == AttackType.DIRECT && enemyAttack == AttackType.SIDE)
+        return CombatOutcome.WIN;
+    else if(heroAttack == AttackType.SIDE && enemyAttack == AttackType.COUNTER)
+        return CombatOutcome.WIN;
+    else if(heroAttack == AttackType.COUNTER && enemyAttack == AttackType.DIRECT)
+        return CombatOutcome.WIN;
+    else if (heroAttack == enemyAttack)
+        return CombatOutcome.DRAW;  
+    else
+        return CombatOutcome.LOSE;
 }
 
 Enemy CreateEnemyWave()
@@ -151,7 +310,6 @@ Enemy CreateEnemyWave()
    var random = new Random();
    var enemyType = EnemyChoiceProbability();
    var enemy = enemies[enemyType].Invoke();
-       
    return enemy;
 }
 
@@ -167,12 +325,12 @@ int EnemyChoiceProbability()
         return 3;
 }
 
-string InputNonEmpryStringFormat(string message = "input")
+string InputNonEmpryStringFormat(string message = "Input")
 {
     string? input;
     bool isError;
     do{
-        Console.WriteLine(message);
+        Console.WriteLine(message + ": \n");
         input = Console.ReadLine();
         isError = string.IsNullOrWhiteSpace(input);
         if (isError)
@@ -181,20 +339,50 @@ string InputNonEmpryStringFormat(string message = "input")
     return input!;
 }
 
+int InputIntFormat(string message = "Input")
+{
+    int input;
+    bool isError;
+    do{
+        Console.WriteLine(message + ": \n");
+        isError = !int.TryParse(Console.ReadLine(), out input);
+        if (isError)
+            Console.WriteLine(message + "must be a number, try again...\n");
+    } while (isError);
+    return input;
+}
+
+int InputExperiance(Hero hero)
+{
+    int amount = 0;
+    int halfXP = hero.XP / 2;
+    do{
+        
+        Console.WriteLine($"CURRENT XP: {hero.XP}");
+        amount = InputIntFormat($"Input amount of XP to spend (MAX is {halfXP}");
+        if (amount > halfXP)
+        {
+            Console.WriteLine("Not enough XP, try again\n");
+            continue;
+        }
+    } while (amount > halfXP);
+
+    return amount;
+}
+
 void ConsoleClearAndContiue()
 {
-    Console.WriteLine("Press any key...");
+    Console.WriteLine("Press any key to continue...");
     Console.ReadKey();
     Console.Clear();
 }   
 
 GameLoop ConfirmationDialog()
 {
-    string? choice;
-    do
-    {
-        choice = Console.ReadLine();
-        if (choice == "" || choice.ToLower() != "yes" || choice.ToLower() != "no")
+    string choice;
+    do{
+        choice = Console.ReadLine()!.ToLower();
+        if (choice == "" || (choice != "yes" && choice != "no"))
         {
             Console.WriteLine("Invalid input, try again\n");
             continue;
@@ -202,7 +390,7 @@ GameLoop ConfirmationDialog()
         break;
     } while (true);
 
-    if(choice.ToLower() == "yes")
+    if(choice!.ToLower() == "yes")
         return GameLoop.CONTINUE;
     
     return GameLoop.EXIT;
