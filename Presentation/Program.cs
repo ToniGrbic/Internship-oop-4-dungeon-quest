@@ -2,6 +2,7 @@
 using Domain.Repositories;
 using Data.Constants;
 using System.Runtime.InteropServices;
+using System;
 
 GameLoop gameLoop = GameLoop.CONTINUE;
 GameState gameState = GameState.IN_PROGRESS;
@@ -39,10 +40,10 @@ Dictionary<int, Func<Enemy>> enemies= new()
 
 do{
     Console.WriteLine(
-        "DUNGEON QUEST\n" +
-        "***********************\n" +
-        "1. PLAY\n" +
-        "2. EXIT\n"
+        "WELCOME TO DUNGEON QUEST!!\n" +
+        "***************************\n" +
+        "1 - PLAY\n" +
+        "2 - EXIT\n"
     );
     var success = int.TryParse(Console.ReadLine(), out int choice);
 
@@ -63,9 +64,9 @@ do{
         "CREATE YOUR HERO:\n" +
         "*********************\n" +
         "Choose your Hero's Trait: \n" +
-               "1. Gladiator\n" +
-               "2. Marksman\n" +
-               "3. Enchanter\n"
+               "1 - Gladiator\n" +
+               "2 - Marksman\n" +
+               "3 - Enchanter\n"
     );
 
     success = int.TryParse(Console.ReadLine(), out choice);
@@ -108,15 +109,14 @@ GameState PlayDungeon(Hero hero)
 {
     for(int i = 0; i < NUMBER_OF_DUNGEON_WAVES; i++)
     {
+        var enemy = CreateEnemyWave();
         Console.WriteLine(
             $"DUNGEON WAVE {i+1}:\n" +
             $"**********************************\n");
+
         hero.PrintHeroStats();
-        
         Console.WriteLine(
-            "\n************** VS ***************\n"
-        );
-        var enemy = CreateEnemyWave();
+            "\n************** VS ***************\n");
         enemy.PrintEnemyStats();
 
         Console.WriteLine("Continue to start the fight! Press any key...");
@@ -126,7 +126,7 @@ GameState PlayDungeon(Hero hero)
             "\nFIGHT STARTED!!\n" +
             "***************************\n"
         );
-        bool heroAlive = Fight(hero, enemy);
+        bool heroAlive = FightEnemy(hero, enemy);
         
         if(!heroAlive && (hero is Enchanter))
         {
@@ -136,8 +136,12 @@ GameState PlayDungeon(Hero hero)
                 Console.WriteLine("Enchnter hero has died, do you want to use Revive? (yes/no)");
                 if (ConfirmationDialog() == GameLoop.CONTINUE)
                     enchanter.ReviveAbility();
-            }else
+            }
+            else {
                 Console.WriteLine("Revive ability has been used before\n");
+                return GameState.LOSS;
+            }
+                
         }
         else if(!heroAlive)
             return GameState.LOSS;
@@ -154,7 +158,7 @@ GameState PlayDungeon(Hero hero)
         hero.RegainHealthAfterBattle();
         ConsoleClearAndContiue();
 
-        if (hero.XP > 0)
+        if (hero.XP > 0 && hero.HP < hero.HPThreshold)
         {
             Console.WriteLine("Do you want to spend your XP for Healh? (yes/no)");
             if (ConfirmationDialog() == GameLoop.CONTINUE)
@@ -169,64 +173,28 @@ GameState PlayDungeon(Hero hero)
     return GameState.WIN;
 }
 
-bool Fight(Hero hero, Enemy enemy)
+bool FightEnemy(Hero hero, Enemy enemy)
 {
     int round = 1;
     while(hero.HP > 0 && enemy.HP > 0)
     {
-        hero.PrintHeroStats();
-        Console.WriteLine(
-            "\n************** VS ***************\n"
-        );
-        enemy.PrintEnemyStats();
-        
+        PrintHeroAndEnemyStats(hero, enemy);
         Console.WriteLine(
             $"\nROUND {round++} :\n" +
             $"*********************\n"
         );
 
         UseHeroAbility(hero);
-        var heroAttack = HeroChooseAttack();
-        var enemyAttack = EnemyChooseAttack();
-        var combatOutcome = IsHeroWinner(heroAttack, enemyAttack);
-
-        Console.WriteLine("Attacking...");
-        Thread.Sleep(2000);
-        if (combatOutcome == CombatOutcome.WIN)
-        {
-            Console.WriteLine($"Hero uses {AttacksString[heroAttack]} attack and beats Enemy {AttacksString[enemyAttack]} attack\n");
-            Thread.Sleep(1000);
-            hero.BasicAttack(enemy);
-            Console.WriteLine($"You damaged {enemy.Type} for {hero.Damage}");
-        }
-        else if(combatOutcome == CombatOutcome.LOSE)
-        {
-            Console.WriteLine($"Enemy uses {AttacksString[enemyAttack]} attack and beats Hero {AttacksString[heroAttack]} attack\n");
-            Thread.Sleep(1000);
-            enemy.BasicAttack(hero);
-            Console.WriteLine($"Enemy {enemy.Type} has damaged you for {enemy.Damage}");
-        }
-        else{
-            Console.WriteLine($"Both Hero and Enemy used {AttacksString[heroAttack]} attack, DRAW!\n");
-        }
-        if (hero is Gladiator)
-        {
-            var gladiator = hero as Gladiator;
-            hero.Damage = gladiator!.BaseDamage;
-        }
+        InitiateCombatAndDecideOutcome(hero, enemy);
         ConsoleClearAndContiue();
 
         hero.PrintHeroStats();
         Console.WriteLine(
-            "\n*********** VS ************\n"
-        );
+            "\n*********** VS ************\n");
         enemy.PrintEnemyStats();
         Console.Clear();
     }
-    if(hero.HP <= 0)
-        return false;
-    else
-        return true;
+    return hero.HP > 0;
 }
 
 void UseHeroAbility(Hero hero)
@@ -234,7 +202,7 @@ void UseHeroAbility(Hero hero)
     if (hero is Gladiator)
     {
         var gladiator = hero as Gladiator;
-        if (hero.HPTheshold * gladiator!.RageHealthCostPercent >= hero.HP)
+        if (hero.HPThreshold * gladiator!.RageHealthCostPercent >= hero.HP)
             Console.WriteLine("Not enough HP to use Rage Ability\n");
         else
         {
@@ -242,7 +210,6 @@ void UseHeroAbility(Hero hero)
             if (ConfirmationDialog() == GameLoop.CONTINUE)
                 gladiator.RageAbility();
         }
-
     }
     else if (hero is Enchanter)
     {
@@ -256,7 +223,6 @@ void UseHeroAbility(Hero hero)
             if (ConfirmationDialog() == GameLoop.CONTINUE)
                 enchanter.HealAbility();
         }
-
     }
     else if (hero is Marksman)
     {
@@ -270,9 +236,9 @@ AttackType HeroChooseAttack()
 {
     Console.WriteLine(
             "Choose your attack type:\n" +
-            "1. DIRECT\n" +
-            "2. SIDE\n" +
-            "3. COUNTER\n"
+            "1 - DIRECT\n" +
+            "2 - SIDE\n" +
+            "3 - COUNTER\n"
     );
     int choice;
     bool success;
@@ -305,6 +271,39 @@ CombatOutcome IsHeroWinner(AttackType heroAttack, AttackType enemyAttack)
         return CombatOutcome.LOSE;
 }
 
+void InitiateCombatAndDecideOutcome(Hero hero, Enemy enemy)
+{
+    var heroAttack = HeroChooseAttack();
+    var enemyAttack = EnemyChooseAttack();
+    var combatOutcome = IsHeroWinner(heroAttack, enemyAttack);
+    Console.WriteLine("Attacking...");
+    Thread.Sleep(2000);
+
+    if (combatOutcome == CombatOutcome.WIN)
+    {
+        Console.WriteLine($"Hero uses {AttacksString[heroAttack]} attack and beats Enemy {AttacksString[enemyAttack]} attack\n");
+        Thread.Sleep(1000);
+        hero.BasicAttack(enemy);
+        Console.WriteLine($"You damaged {enemy.Type} for {hero.Damage}");
+    }
+    else if (combatOutcome == CombatOutcome.LOSE)
+    {
+        Console.WriteLine($"Enemy uses {AttacksString[enemyAttack]} attack and beats Hero {AttacksString[heroAttack]} attack\n");
+        Thread.Sleep(1000);
+        enemy.BasicAttack(hero);
+        Console.WriteLine($"Enemy {enemy.Type} has damaged you for {enemy.Damage}");
+    }
+    else{
+        Console.WriteLine($"Both Hero and Enemy used {AttacksString[heroAttack]} attack, DRAW!\n");
+    }
+
+    if (hero is Gladiator)
+    {
+        var gladiator = hero as Gladiator;
+        if(gladiator!.Damage > gladiator!.BaseDamage)
+            gladiator.Damage = gladiator.BaseDamage;
+    }
+}
 Enemy CreateEnemyWave()
 {
    var random = new Random();
@@ -317,9 +316,9 @@ int EnemyChoiceProbability()
 {
     var random = new Random();
     var choice = random.Next(1, 101);
-    if(choice <= 50)
+    if(choice <= 60)
         return 1;
-    else if(choice > 50 && choice <= 80)
+    else if(choice > 60 && choice <= 80)
         return 2;
     else
         return 3;
@@ -358,7 +357,8 @@ int InputExperiance(Hero hero)
     int halfXP = hero.XP / 2;
     do{
         
-        Console.WriteLine($"CURRENT XP: {hero.XP}");
+        Console.WriteLine($"CURRENT XP: {hero.XP} / {hero.XPThreshold}");
+        Console.WriteLine($"CURRENT HP: {hero.HP} / {hero.HPThreshold}");
         amount = InputIntFormat($"Input amount of XP to spend (MAX is {halfXP}");
         if (amount > halfXP)
         {
@@ -368,6 +368,14 @@ int InputExperiance(Hero hero)
     } while (amount > halfXP);
 
     return amount;
+}
+
+void PrintHeroAndEnemyStats(Hero hero, Enemy enemy)
+{
+    hero.PrintHeroStats();
+    Console.WriteLine(
+        "\n************** VS ***************\n");
+    enemy.PrintEnemyStats();
 }
 
 void ConsoleClearAndContiue()
