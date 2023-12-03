@@ -3,8 +3,8 @@ public class Hero
 {
     public string Name { get; set; }
     public int XP { get; set; }
-    public int XPTreshold { get; set; }
-    public int HPTheshold { get; set; }
+    public int XPThreshold { get; set; }
+    public int HPThreshold { get; set; }
     public int Damage { get; set; }
     public int HP { get; set; }
     public int Level { get; set; }
@@ -14,12 +14,12 @@ public class Hero
         Name = name;
         XP = 0;
         Level = 1;
-        XPTreshold = 100;
+        XPThreshold = 100;
         Trait = "";
     }
     public void GainExperienceAndLevelUp(int gainedXP)
     {
-        if(XP + gainedXP >= XPTreshold)
+        if(XP + gainedXP >= XPThreshold)
         {
             ++Level;
             Console.WriteLine(
@@ -27,10 +27,12 @@ public class Hero
                 $"NEW LVL: {Level}\n" +
                 $"***************************"
             );
-            XP = (XP + gainedXP) - XPTreshold;
-            HPTheshold += 50;
-            HP += 100;
-            Damage += 30;
+            XP = (XP + gainedXP) - XPThreshold;
+            HPThreshold += 50;
+
+            if (this is Gladiator gladiator)
+                gladiator.BaseDamage += 15;
+            Damage += 15;
 
             if (this is Enchanter enchanter)
             {
@@ -40,10 +42,16 @@ public class Hero
         }
         else
             XP += gainedXP;
+        HP += 50;
     }
     public void BasicAttack(Enemy enemy)
     {
         enemy.HP -= Damage;
+        if(this is Gladiator gladiator && gladiator.isRageActive)
+        {
+            HP -= (int)(HPThreshold * gladiator.RageHealthCostPercent);
+            gladiator.isRageActive = false;
+        }
         if (this is Enchanter enchanter)
         {
             enchanter.Mana -= 15;
@@ -68,10 +76,10 @@ public class Hero
 
     public void RegainHealthAfterBattle()
     {
-        var HPToGain = (int)(HPTheshold * 0.25);
-        if (HP + HPToGain > HPTheshold)
+        var HPToGain = (int)(HPThreshold * 0.25);
+        if (HP + HPToGain > HPThreshold)
         {
-            HP = HPTheshold;
+            HP = HPThreshold;
             Console.WriteLine($"Healed to MAX HP\n");
         }
         else
@@ -88,8 +96,8 @@ public class Hero
                 $"HERO: {Name}\n" +
                 $"Trait: {Trait}\n" +
                 $"Level: {Level}\n" +
-                $"HP: {HP} / {HPTheshold}\n" +
-                $"XP: {XP} / {XPTreshold}\n" +
+                $"HP: {HP} / {HPThreshold}\n" +
+                $"XP: {XP} / {XPThreshold}\n" +
                 $"Damage: {Damage}"
         );
     }
