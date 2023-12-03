@@ -11,7 +11,7 @@ namespace Domain.Repositories
         {
             this.Trait = "Enchanter";
             this.HP = (int)HeroHP.Enchanter;
-            this.HPTheshold = (int)HeroHP.Enchanter;
+            this.HPThreshold = (int)HeroHP.Enchanter;
             this.Damage = (int)HeroDamage.Enchanter;
             this.ManaThreshold = (int)ManaAmount.Enchanter;
             this.Mana = ManaThreshold;
@@ -23,12 +23,13 @@ namespace Domain.Repositories
             {
                 this.HP += 250;
                 Mana -= 50;
+                this.PrintHeroStats();
             }
         }
 
         public void ReviveAbility()
         { 
-            HP = HPTheshold;
+            HP = HPThreshold;
             Mana = ManaThreshold; 
             HasRevive = false;
         }

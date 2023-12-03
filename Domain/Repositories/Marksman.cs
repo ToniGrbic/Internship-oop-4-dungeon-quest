@@ -10,7 +10,7 @@ public class Marksman : Hero
     {
         this.Damage = (int)HeroDamage.Marksman;
         this.HP = (int)HeroHP.Marksman;
-        this.HPTheshold = (int)HeroHP.Marksman;
+        this.HPThreshold = (int)HeroHP.Marksman;
         this.Trait = "Marksman";
     }
 }
