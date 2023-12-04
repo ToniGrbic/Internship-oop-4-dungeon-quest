@@ -1,6 +1,6 @@
 ﻿
 using Data.Constants;
-using Data.Utils;
+using Data.InputOutputUtils;
 
 namespace Domain.Repositories;
 
@@ -11,38 +11,19 @@ public class Gladiator : Hero
     public int BaseDamage { get; set; }
     public Gladiator(string Name) : base(Name)
     {
-        RageHealthCostPercent = 0.15f;
+        RageHealthCostPercent = 0.10f;
         isRageActive = false;
+        BaseDamage = (int)HeroDamage.Gladiator;
         this.Trait = "Gladiator";
         this.HP = (int)HeroHP.Gladiator;
         this.HPThreshold = (int)HeroHP.Gladiator;
-        BaseDamage = (int)HeroDamage.Gladiator;
         this.Damage = BaseDamage;
-
     }
-
     public void RageAbility()
     {
-        this.Damage *= 2;
-        this.isRageActive = true;
+        Damage *= 2;
+        isRageActive = true;
     }
-
-    public override void BasicAttack(Enemy enemy)
-    {
-
-        if (this.isRageActive)
-        {
-            Console.WriteLine("Rage is activated!\n");
-            HP -= (int)(HPThreshold * this.RageHealthCostPercent);
-            this.isRageActive = false;
-            enemy.HP -= Damage;
-            Console.WriteLine($"You damaged the {enemy.Type} for {Damage}");
-        }
-        else
-            enemy.HP -= Damage;
-
-    }
-
     public override void UseHeroAbility()
     {
         if (HPThreshold * RageHealthCostPercent >= HP)
@@ -54,6 +35,28 @@ public class Gladiator : Hero
                 RageAbility();
         }
     }
+    public override void BasicAttack(Enemy enemy)
+    {
+        UseHeroAbility();
+
+        if (isRageActive)
+        {
+            Console.WriteLine("Rage is activated!\n");
+            HP -= (int)(HPThreshold * RageHealthCostPercent);
+            
+            enemy.HP -= Damage;
+            Console.WriteLine($"You damaged the {enemy.Type} for {Damage}");
+            isRageActive = false;
+            Damage = BaseDamage;
+        }
+        else
+        {
+            enemy.HP -= Damage;
+            Console.WriteLine($"You damaged the {enemy.Type} for {Damage}");
+        }
+    }
+
+    
 
 
 }
