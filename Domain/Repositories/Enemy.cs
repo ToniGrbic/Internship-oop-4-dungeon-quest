@@ -3,7 +3,7 @@ using System;
 
 namespace Domain.Repositories
 {
-    public class Enemy
+    public class Enemy : IEnemy
     {
         public int HP { get; set; }
         public int HPThreshold { get; set; }
@@ -17,7 +17,7 @@ namespace Domain.Repositories
            Type = "";
            IsStunned = false;
         }
-        public void BasicAttack(Hero hero)
+        public virtual void BasicAttack(Hero hero)
         {
             hero.HP -= Damage;
             Console.WriteLine($"Enemy {Type} has damaged you for {Damage}");

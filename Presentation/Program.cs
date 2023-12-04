@@ -1,7 +1,7 @@
 ﻿// See https://aka.ms/new-console-template for more information
 using Domain.Repositories;
 using Data.Constants;
-using Data.Utils;
+using Data.InputOutputUtils;
 
 GameLoop gameLoop = GameLoop.CONTINUE;
 GameState gameState = GameState.IN_PROGRESS;
@@ -14,11 +14,11 @@ Dictionary<int, Func<string, Hero>>heroTraitChoice = new()
     {3, name => new Enchanter(name)}
 };
 
-Dictionary<int, Func<Enemy>> enemies= new()
+Dictionary<EnemyType, Func<Enemy>> enemies= new()
 {
-    {1, () => new Goblin()},
-    {2, () => new Brute()},
-    {3, () => new Witch()}
+    {EnemyType.Goblin, () => new Goblin()},
+    {EnemyType.Brute, () => new Brute()},
+    {EnemyType.Witch, () => new Witch()}
 };
 
 Dictionary<int, AttackType> Attacks = new()
@@ -107,7 +107,7 @@ GameState PlayDungeon(Hero hero)
 {
     for(int i = 0; i < NUMBER_OF_DUNGEON_WAVES; i++)
     {
-        var enemy = CreateEnemyWave();
+        var enemy = CreateRandomEnemy();
         
         Console.WriteLine(
             $"DUNGEON WAVE {i+1}:\n" +
@@ -116,10 +116,6 @@ GameState PlayDungeon(Hero hero)
         Console.WriteLine("Continue to start the fight! Press any key...");
         Utils.ConsoleClearAndContinue();
 
-        Console.WriteLine(
-            "FIGHT STARTED!!\n" +
-            "***************************\n"
-        );
         bool heroAlive = FightEnemy(hero, enemy);
         
         if(!heroAlive)
@@ -166,7 +162,7 @@ bool FightEnemy(Hero hero, Enemy enemy)
             $"ROUND {round++} :\n" +
             $"*********************\n"
         );
-        if (hero is not Marksman)
+        if (hero is Enchanter)
             hero.UseHeroAbility();
         InitiateCombatAndDecideOutcome(hero, enemy);
         Utils.ConsoleClearAndContinue();
@@ -241,19 +237,15 @@ void InitiateCombatAndDecideOutcome(Hero hero, Enemy enemy)
         Console.WriteLine($"Enemy uses {AttacksString[enemyAttack]} attack and beats Hero {AttacksString[heroAttack]} attack\n");
         Thread.Sleep(1000);
         enemy.BasicAttack(hero);
+
     }
     else
     {
         Console.WriteLine($"Both Hero and Enemy used {AttacksString[heroAttack]} attack, DRAW!\n");
         return;
     }
-
-    if (hero is Gladiator){
-        var gladiator = hero as Gladiator;
-        if (gladiator!.isRageActive == false)
-            gladiator.Damage = gladiator.BaseDamage;
-    }
-    else if (hero is Enchanter && hero.HP <= 0)
+    
+    if (hero is Enchanter && hero.HP <= 0)
     {
         var enchanter = hero as Enchanter;
         if (enchanter!.HasRevive)
@@ -266,12 +258,23 @@ void InitiateCombatAndDecideOutcome(Hero hero, Enemy enemy)
             Console.WriteLine("Revive ability has been used before\n");
     }
 }
-Enemy CreateEnemyWave()
+Enemy CreateRandomEnemy()
 {
    var random = new Random();
-   var enemyType = Utils.EnemyChoiceProbability();
+   var enemyType = EnemyChoiceProbability();
    var enemy = enemies[enemyType].Invoke();
    return enemy;
+}
+EnemyType EnemyChoiceProbability()
+{
+    var random = new Random();
+    var choice = random.Next(1, 101);
+    if (choice < 60)
+        return EnemyType.Goblin;
+    else if (choice >= 60 && choice < 90)
+        return EnemyType.Brute;
+    else
+        return EnemyType.Witch;
 }
 
 int InputExperiance(Hero hero)
