@@ -1,7 +1,7 @@
 ﻿using System;
 
 namespace Domain.Repositories;
-public class Hero
+public class Hero : IHero
 {
     public string Name { get; set; }
     public int XP { get; set; }
@@ -13,6 +13,7 @@ public class Hero
     public string? Trait { get; set; }
     public virtual void BasicAttack(Enemy enemy) { }
     public virtual void UseHeroAbility() { }
+
     public Hero(string name)
     {
         Name = name;
@@ -44,8 +45,10 @@ public class Hero
             }
             else if (this is Marksman marksman)
             {
-                marksman.CriticalStrikeChance += 0.08f;
-                marksman.StunChance += 0.07f;
+                if(marksman.CriticalStrikeChance <= 0.95f)
+                    marksman.CriticalStrikeChance += 0.05f;
+                if(marksman.StunChance <= 0.55f)
+                    marksman.StunChance += 0.05f;
             }
         }
         else
@@ -82,7 +85,6 @@ public class Hero
             Console.WriteLine($"Healed for: {HPToGain}\n");
         }
         PrintHeroStats();
-
     }
     public void PrintHeroStats()
     {
