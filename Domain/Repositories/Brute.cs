@@ -7,7 +7,7 @@ namespace Domain.Repositories
     {
         public bool isHeavyStrike = false;
         public float HeavyStrikeChance = 0.30f;
-        public float PercentageOfHPDamage = 0.20f;
+        public float PercentageOfHPDamage = 0.25f;
         public Brute()
         {
             this.HPThreshold = (int)EnemiesHP.Brute;

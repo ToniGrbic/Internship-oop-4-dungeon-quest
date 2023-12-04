@@ -16,8 +16,8 @@ public class Marksman : Hero
         this.HP = (int)HeroHP.Marksman;
         this.HPThreshold = (int)HeroHP.Marksman;
         this.Trait = "Marksman";
-        CriticalStrikeChance = 0.40f;
-        StunChance = 0.30f;
+        CriticalStrikeChance = 0.45f;
+        StunChance = 0.35f;
         isCritStrike = false;
         isStunAttack = false;
     }

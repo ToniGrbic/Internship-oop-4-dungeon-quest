@@ -7,7 +7,6 @@ namespace Domain.Repositories
     public class Enchanter : Hero
     {
         public int Mana { get; set; }
-
         public int ManaCostAttack { get; set; }
         public int ManaThreshold { get; set; }
         public bool HasRevive { get; set; }
@@ -30,12 +29,13 @@ namespace Domain.Repositories
             {
                 if(HP + 250 >= HPThreshold)
                 {
+                    var missingHP = HPThreshold - HP;
                     HP = HPThreshold;
-                    Console.WriteLine("Healed to full!\n");
+                    Console.WriteLine($"+{missingHP}HP, Healed to full!\n");
                 }
                 else {  
                     HP += 250;
-                    Console.WriteLine("Healed for 250 HP!\n");
+                    Console.WriteLine("Healed for +250 HP!\n");
                 }
                 Mana -= 50;
                 PrintHeroStats();
@@ -69,10 +69,10 @@ namespace Domain.Repositories
         public override void UseHeroAbility()
         {
             if (Mana < 50)
-                Console.WriteLine("Not enough mana to use Heal Ability");
+                Console.WriteLine("Not enough mana to use Heal Ability\n");
             else if(HP == HPThreshold)
             {
-                Console.WriteLine("HP is already full, can't use Heal");
+                Console.WriteLine("HP is already full, can't use Heal\n");
             }
             else
             {
@@ -80,7 +80,7 @@ namespace Domain.Repositories
                 if (Utils.ConfirmationDialog() == GameLoop.CONTINUE)
                     HealAbility();
             }
-            Utils.ConsoleClearAndContinue();
+            //Utils.ConsoleClearAndContinue();
         }
     }
 }
