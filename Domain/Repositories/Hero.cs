@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Data.InputOutputUtils;
+using System;
 
 namespace Domain.Repositories;
 public class Hero : IHero
@@ -65,6 +66,7 @@ public class Hero : IHero
                $"HEALTH: {HP}\n" +
                $"EXPERIENCE: {XP}\n"
            );
+            Utils.ConsoleClearAndContinue();
         }
         else{
             Console.WriteLine("Not enough XP\n");

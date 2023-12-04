@@ -56,27 +56,7 @@ do{
         continue;
     }
 
-    Console.Clear();
-    Console.WriteLine(
-        "CREATE YOUR HERO:\n" +
-        "*********************\n" +
-        "Choose your Hero's Trait: \n" +
-               "1 - Gladiator\n" +
-               "2 - Marksman -> work in proggres\n" +
-               "3 - Enchanter\n"
-    );
-
-    success = int.TryParse(Console.ReadLine(), out choice);
-    if (!success || !heroTraitChoice.ContainsKey(choice))
-    {
-        Console.WriteLine("Invalid input for trait, try again\n");
-        Console.Clear();
-        continue;
-    }
-
-    var heroName = Utils.InputNonEmptyStringFormat("Hero name");
-    var newHero = heroTraitChoice[choice].Invoke(heroName);
-
+    var newHero = CreateNewHero();
     Console.Clear();
     newHero.PrintHeroStats();
 
@@ -150,6 +130,34 @@ GameState PlayDungeon(Hero hero)
         } 
     }
     return GameState.WIN;
+}
+
+Hero CreateNewHero()
+{
+    int choice;
+    bool success;
+    string heroName = "";
+    do{
+        Console.Clear();
+        Console.WriteLine(
+            "CREATE YOUR HERO:\n" +
+            "*********************\n" +
+            "Choose your Hero's Trait: \n" +
+               "1 - Gladiator\n" +
+               "2 - Marksman -> work in proggres\n" +
+               "3 - Enchanter\n"
+        );
+
+        success = int.TryParse(Console.ReadLine(), out choice) && heroTraitChoice.ContainsKey(choice);
+        if (!success)
+        {
+            Console.WriteLine("Invalid input for trait, try again\n");
+            continue;
+        }
+        heroName = Utils.InputNonEmptyStringFormat("Hero name");
+    }while(success);
+
+    return heroTraitChoice[choice].Invoke(heroName);
 }
 
 bool FightEnemy(Hero hero, Enemy enemy)
