@@ -35,6 +35,8 @@ Dictionary<AttackType, string> AttacksString = new()
     {AttackType.COUNTER, "Counter"}
 };
 
+List<Enemy> defeatedEnemies = new();
+
 do{
     Console.WriteLine(
         "WELCOME TO DUNGEON QUEST!!\n" +
@@ -43,14 +45,11 @@ do{
         "2 - EXIT\n"
     );
     var success = int.TryParse(Console.ReadLine(), out int choice);
-
-    if (choice == 2)
-    {
+    if (choice == 2){
         gameLoop = GameLoop.EXIT;
         continue;
     }
-    else if (choice != 1 || !success)
-    {
+    else if (choice != 1 || !success){
         Console.WriteLine("Invalid input, try again\n");
         Utils.ConsoleClearAndContinue();
         continue;
@@ -64,18 +63,7 @@ do{
     Utils.ConsoleClearAndContinue();
 
     gameState = PlayDungeon(newHero);
-
-    if (gameState == GameState.LOSS)
-        Console.WriteLine("You lost the game\n");
-    else if (gameState == GameState.WIN)
-    {
-        Console.WriteLine(
-            "YOU HAVE WON, Congrats!\n" +
-            "****************************\n\n"
-        );
-    }
-    Console.WriteLine("END HERO STATS:\n");
-    newHero.PrintHeroStats();
+    PrintEndGameStats(gameState, newHero);
         
     Console.WriteLine("Do you want to play again? (yes/no)");
     gameLoop = Utils.ConfirmationDialog();
@@ -101,6 +89,8 @@ GameState PlayDungeon(Hero hero)
         if(!heroAlive)
             return GameState.LOSS;
 
+        defeatedEnemies.Add(enemy); 
+
         if (i == NUMBER_OF_DUNGEON_WAVES - 1)
             break;
 
@@ -111,14 +101,14 @@ GameState PlayDungeon(Hero hero)
             $"YOU HAVE DEFATED THE {enemy.Type}!\n" +
             $"***********************************\n"
         );
-
+        
         hero.GainExperienceAndLevelUp(enemy.XP);
         hero.RegainHealthAfterBattle();
 
         Console.WriteLine("Continue to next enemy. ");
         Utils.ConsoleClearAndContinue();
 
-        if (hero.XP > 0 && hero.HP < hero.HPThreshold)
+        if (hero.XP > 1 && hero.HP < hero.HPThreshold)
         {
             Console.WriteLine("Do you want to spend your XP for Healh? (yes/no)");
             if (Utils.ConfirmationDialog() == GameLoop.CONTINUE)
@@ -144,7 +134,7 @@ Hero CreateNewHero()
             "*********************\n" +
             "Choose your Hero's Trait: \n" +
                "1 - Gladiator\n" +
-               "2 - Marksman -> work in proggres\n" +
+               "2 - Marksman\n" +
                "3 - Enchanter\n"
         );
 
@@ -155,7 +145,7 @@ Hero CreateNewHero()
             continue;
         }
         heroName = Utils.InputNonEmptyStringFormat("Hero name");
-    }while(success);
+    }while(!success);
 
     return heroTraitChoice[choice].Invoke(heroName);
 }
@@ -185,6 +175,7 @@ AttackType HeroChooseAttack()
             "2 - SIDE\n" +
             "3 - COUNTER\n"
     );
+
     int choice;
     bool success;
     do{
@@ -206,15 +197,15 @@ CombatOutcome IsHeroWinner(AttackType heroAttack, AttackType enemyAttack, Enemy 
 {
     if (enemy.IsStunned)
         return CombatOutcome.WIN;
-        
+    if (heroAttack == enemyAttack)
+        return CombatOutcome.DRAW;
+    
     if(heroAttack == AttackType.DIRECT && enemyAttack == AttackType.SIDE)
         return CombatOutcome.WIN;
     if(heroAttack == AttackType.SIDE && enemyAttack == AttackType.COUNTER)
         return CombatOutcome.WIN;
     if(heroAttack == AttackType.COUNTER && enemyAttack == AttackType.DIRECT)
         return CombatOutcome.WIN;
-    if (heroAttack == enemyAttack)
-        return CombatOutcome.DRAW;  
     
     return CombatOutcome.LOSE;
 }
@@ -311,5 +302,26 @@ void PrintHeroAndEnemyStats(Hero hero, Enemy enemy)
         "\n************** VS ***************\n");
     enemy.PrintEnemyStats();
 } 
+
+void PrintEndGameStats(GameState gameState, Hero hero)
+{
+    if (gameState == GameState.LOSS)
+        Console.WriteLine("You have lost the game :(\n");
+    else if (gameState == GameState.WIN)
+    {
+        Console.WriteLine(
+            "YOU HAVE WON, Congrats!\n" +
+            "****************************\n\n"
+        );
+    }
+    Console.WriteLine("END OF GAME HERO STATS:\n");
+    hero.PrintHeroStats();
+    Console.WriteLine(
+        "DEFEATED ENEMIES:\n" +
+        "***************************\n"
+    );
+    for (int i = 0; i < defeatedEnemies.Count; i++)
+        Console.WriteLine($"ROUND {i + 1} - {defeatedEnemies[i].Type}");
+}
 
 
