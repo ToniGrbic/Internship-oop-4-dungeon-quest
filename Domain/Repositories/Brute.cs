@@ -10,10 +10,10 @@ namespace Domain.Repositories
         public float PercentageOfHPDamage = 0.25f;
         public Brute()
         {
-            this.HPThreshold = (int)EnemiesHP.Brute;
+            this.HPThreshold = (int)EnemyHP.Brute;
             this.HP = HPThreshold;
-            this.XP = (int)EnemiesXP.Brute;
-            this.Damage = (int)EnemiesDamage.Brute;
+            this.XP = (int)EnemyXP.Brute;
+            this.Damage = (int)EnemyDamage.Brute;
             this.Type = "Brute";
         }
 

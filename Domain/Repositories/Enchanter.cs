@@ -17,7 +17,7 @@ namespace Domain.Repositories
             this.HP = HPThreshold;
             this.Damage = (int)HeroDamage.Enchanter;
 
-            ManaThreshold = (int)ManaAmount.Enchanter;
+            ManaThreshold = Constants.MANA_AMOUNT_ENCHANTER;
             Mana = ManaThreshold;
             ManaCostAttack = 15;
             HasRevive = true;

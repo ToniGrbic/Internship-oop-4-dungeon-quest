@@ -7,25 +7,25 @@ namespace Data.Constants
         Witch,
         Brute,
     }
-    public enum EnemiesDamage
+    public enum EnemyDamage
     {
         Goblin = 60,
         Witch = 80,
         Brute = 90,
     }
 
-    public enum EnemiesHP
+    public enum EnemyHP
     {
         Goblin = 160,
         Witch = 120,
         Brute = 240,
     }
     
-    public enum EnemiesXP
+    public enum EnemyXP
     {
-        Goblin = 55,
-        Witch = 90,
-        Brute = 80,
+        Goblin = 50,
+        Witch = 85,
+        Brute = 75,
     }   
 
 }

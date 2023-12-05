@@ -1,5 +1,6 @@
 ﻿using Data.InputOutputUtils;
-using System;
+using Data.Constants;
+using System.Reflection.Metadata;
 
 namespace Domain.Repositories;
 public class Hero : IHero
@@ -20,7 +21,7 @@ public class Hero : IHero
         Name = name;
         XP = 0;
         Level = 1;
-        XPThreshold = 100;
+        XPThreshold = Constants.XP_THRESHOLD;
         Trait = "";
     }
     public void GainExperienceAndLevelUp(int gainedXP)
@@ -35,21 +36,22 @@ public class Hero : IHero
                 $"***************************"
             );
             XP = (XP + gainedXP) - XPThreshold;
-            HPThreshold += 25;
-            Damage += 10;
+            HPThreshold += Constants.HP_THRESHOLD_PER_LVL;
+            Damage += Constants.DAMAGE_PER_LVL;
+
             if (this is Gladiator gladiator)
-                gladiator.BaseDamage += 10;
+                gladiator.BaseDamage += Constants.DAMAGE_PER_LVL;
             else if (this is Enchanter enchanter)
             {
-                enchanter.ManaThreshold += 10;
+                enchanter.ManaThreshold += Constants.MANA_INCREASE_PER_LVL;
                 enchanter.Mana = enchanter.ManaThreshold;
             }
             else if (this is Marksman marksman)
             {
                 if(marksman.CriticalStrikeChance <= 0.95f)
-                    marksman.CriticalStrikeChance += 0.05f;
+                    marksman.CriticalStrikeChance += Constants.CRIT_CHANCE_PER_LVL;
                 if(marksman.StunChance <= 0.55f)
-                    marksman.StunChance += 0.05f;
+                    marksman.StunChance += Constants.CRIT_CHANCE_PER_LVL;
             }
         }
         else
@@ -76,7 +78,7 @@ public class Hero : IHero
 
     public void RegainHealthAfterBattle()
     {
-        var HPToGain = (int)(HPThreshold * 0.25);
+        var HPToGain = (int)(HPThreshold * Constants.HP_PERCENT_REGAIN);
         if (HP + HPToGain > HPThreshold)
         {
             HP = HPThreshold;
