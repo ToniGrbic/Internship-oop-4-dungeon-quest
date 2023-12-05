@@ -1,7 +1,9 @@
 ﻿// See https://aka.ms/new-console-template for more information
-using Domain.Repositories;
 using Data.Constants;
 using Data.InputOutputUtils;
+using Domain.Repositories;
+using System;
+using System.Runtime.InteropServices;
 
 GameLoop gameLoop = GameLoop.CONTINUE;
 GameState gameState = GameState.IN_PROGRESS;
@@ -28,7 +30,7 @@ Dictionary<int, AttackType> Attacks = new()
     {3, AttackType.COUNTER}
 };
 
-Dictionary<AttackType, string> AttacksString = new()
+Dictionary<AttackType, string> AtkString = new()
 {
     {AttackType.DIRECT, "Direct"},
     {AttackType.SIDE, "Side"},
@@ -76,48 +78,31 @@ GameState PlayDungeon(Hero hero)
     for(int i = 0; i < NUMBER_OF_DUNGEON_WAVES; i++)
     {
         var enemy = CreateRandomEnemy();
-        
         Console.WriteLine(
             $"DUNGEON WAVE {i+1}:\n" +
-            $"**********************************\n");
+            $"**********************************\n"
+        );
         PrintHeroAndEnemyStats(hero, enemy);
         Console.WriteLine("Continue to start the fight! Press any key...");
         Utils.ConsoleClearAndContinue();
 
         bool heroAlive = FightEnemy(hero, enemy);
-        
-        if(!heroAlive)
+        if (!heroAlive)
             return GameState.LOSS;
 
         defeatedEnemies.Add(enemy); 
 
+        if(enemy is Witch witch && witch.HP <= 0)
+        {
+            gameState = FightWitchSpawnedEnemies(hero, witch);
+            if(gameState == GameState.LOSS)
+                return GameState.LOSS;
+        }
+
         if (i == NUMBER_OF_DUNGEON_WAVES - 1)
             break;
 
-        Console.Clear();
-        PrintHeroAndEnemyStats(hero, enemy);
-        Thread.Sleep(1500);
-        Console.WriteLine(
-            $"YOU HAVE DEFATED THE {enemy.Type}!\n" +
-            $"***********************************\n"
-        );
-        
-        hero.GainExperienceAndLevelUp(enemy.XP);
-        hero.RegainHealthAfterBattle();
-
-        Console.WriteLine("Continue to next enemy. ");
-        Utils.ConsoleClearAndContinue();
-
-        if (hero.XP > 1 && hero.HP < hero.HPThreshold)
-        {
-            Console.WriteLine("Do you want to spend your XP for Healh? (yes/no)");
-            if (Utils.ConfirmationDialog() == GameLoop.CONTINUE)
-            {
-                var amount = InputExperiance(hero);
-                hero.SpendXPforHP(amount);
-            }
-            Console.Clear();
-        } 
+        PostFightActionsAndInfo(hero, enemy);
     }
     return GameState.WIN;
 }
@@ -163,9 +148,67 @@ bool FightEnemy(Hero hero, Enemy enemy)
         if (hero is Enchanter)
             hero.UseHeroAbility();
         InitiateCombatAndDecideOutcome(hero, enemy);
+
         Utils.ConsoleClearAndContinue();
     }
     return hero.HP > 0;
+}
+
+GameState FightWitchSpawnedEnemies(Hero hero, Witch witch)
+{
+    var enemiesToSpawn = new List<Enemy>() { CreateRandomEnemy(), CreateRandomEnemy() };
+    witch.EnemiesToSpawn.AddRange(enemiesToSpawn);
+    Console.WriteLine(
+        "Witch has died, spawning two more random enemies!\n" +
+        $"1. {enemiesToSpawn[0]}\n" +
+        $"2. {enemiesToSpawn[1]}\n" +
+        $"*********************************"
+    );
+
+    for (int j = 0; j < witch.EnemiesToSpawn.Count; j++)
+    {
+        var spawnedEnemy = witch.EnemiesToSpawn[j];
+        Console.WriteLine(
+            $"{j+1}. Spawned {spawnedEnemy.Type}!\n" +
+            $"****************************\n");
+        PrintHeroAndEnemyStats(hero, spawnedEnemy);
+
+        Console.WriteLine("Continue to start the fight! Press any key...");
+        Utils.ConsoleClearAndContinue();
+
+        var heroAlive = FightEnemy(hero, spawnedEnemy);
+        if (!heroAlive)
+            return GameState.LOSS;
+        PostFightActionsAndInfo(hero, spawnedEnemy);
+    }
+    return GameState.IN_PROGRESS;
+}
+
+void PostFightActionsAndInfo(Hero hero, Enemy enemy)
+{
+    Console.Clear();
+    PrintHeroAndEnemyStats(hero, enemy);
+    Thread.Sleep(1500);
+    Console.WriteLine(
+        $"YOU HAVE DEFATED THE {enemy.Type}!\n" +
+        $"***********************************\n"
+    );
+
+    hero.GainExperienceAndLevelUp(enemy.XP);
+    hero.RegainHealthAfterBattle();
+
+    Utils.ConsoleClearAndContinue();
+
+    if (hero.XP > 1 && hero.HP < hero.HPThreshold)
+    {
+        Console.WriteLine("Do you want to spend your XP for Healh? (yes/no)");
+        if (Utils.ConfirmationDialog() == GameLoop.CONTINUE)
+        {
+            var amount = InputExperiance(hero);
+            hero.SpendXPforHP(amount);
+        }
+        Console.Clear();
+    }
 }
 AttackType HeroChooseAttack()
 {
@@ -218,29 +261,21 @@ void InitiateCombatAndDecideOutcome(Hero hero, Enemy enemy)
     Console.WriteLine("Attacking...");
     Thread.Sleep(1000);
 
-    if (combatOutcome == CombatOutcome.WIN && enemy.IsStunned)
-    {
+    if (combatOutcome == CombatOutcome.WIN && enemy.IsStunned){
         Console.WriteLine($"Enemy {enemy.Type} is stunned, Hero wins round!\n");
-        Thread.Sleep(1000);
         hero.BasicAttack(enemy);
         enemy.IsStunned = false;
     }
-    else if (combatOutcome == CombatOutcome.WIN)
-    {
-        Console.WriteLine($"Hero uses {AttacksString[heroAttack]} attack and beats Enemy {AttacksString[enemyAttack]} attack\n");
-        Thread.Sleep(1000);
+    else if (combatOutcome == CombatOutcome.WIN){
+        Console.WriteLine($"Hero uses {AtkString[heroAttack]} attack and beats Enemy {AtkString[enemyAttack]} attack, WIN!\n");
         hero.BasicAttack(enemy);
     }
-    else if (combatOutcome == CombatOutcome.LOSE)
-    {
-        Console.WriteLine($"Enemy uses {AttacksString[enemyAttack]} attack and beats Hero {AttacksString[heroAttack]} attack\n");
-        Thread.Sleep(1000);
+    else if (combatOutcome == CombatOutcome.LOSE){
+        Console.WriteLine($"Enemy uses {AtkString[enemyAttack]} attack and beats Hero {AtkString[heroAttack]} attack, WIN!\n");
         enemy.BasicAttack(hero);
-
     }
-    else
-    {
-        Console.WriteLine($"Both Hero and Enemy used {AttacksString[heroAttack]} attack, DRAW!\n");
+    else{
+        Console.WriteLine($"Both Hero and Enemy used {AtkString[heroAttack]} attack, DRAW!\n");
         return;
     }
     
@@ -270,7 +305,7 @@ EnemyType EnemyChoiceProbability()
     var choice = random.Next(1, 101);
     if (choice < 60)
         return EnemyType.Goblin;
-    else if (choice >= 60 && choice < 90)
+    else if (choice >= 60 && choice < 80)
         return EnemyType.Brute;
     else
         return EnemyType.Witch;
@@ -321,7 +356,7 @@ void PrintEndGameStats(GameState gameState, Hero hero)
         "***************************\n"
     );
     for (int i = 0; i < defeatedEnemies.Count; i++)
-        Console.WriteLine($"ROUND {i + 1} - {defeatedEnemies[i].Type}");
+        Console.WriteLine($"WAVE {i + 1} - {defeatedEnemies[i].Type}");
 }
 
 
