@@ -22,14 +22,14 @@ namespace Domain.Repositories
                   $"Everyones HP is set to {DisarrayHealthPercentage}% !\n"
             );
             
-            hero.HP = hero.HPThreshold * (int)(DisarrayHealthPercentage /100f);
+            hero.HP = (int)(hero.HPThreshold * (DisarrayHealthPercentage / 100f));
             Console.WriteLine($"Hero HP: {hero.HP} / {hero.HPThreshold}");
 
-            this.HP = HPThreshold * (int)(DisarrayHealthPercentage /100f);
+            this.HP = (int)(HPThreshold * (DisarrayHealthPercentage / 100f));
             Console.WriteLine($"Enemy {Type} HP: {HP} / {HPThreshold}");
 
             foreach (var enemy in EnemiesToSpawn){
-                enemy.HP = enemy.HPThreshold * (int)(DisarrayHealthPercentage / 100f);
+                enemy.HP = (int)(enemy.HPThreshold * (DisarrayHealthPercentage / 100f));
                 Console.WriteLine($"Enemy {enemy.Type} HP: {enemy.HP} / {enemy.HPThreshold}");  
             }
                

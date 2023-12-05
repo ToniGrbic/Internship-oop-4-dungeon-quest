@@ -2,8 +2,6 @@
 using Data.Constants;
 using Data.InputOutputUtils;
 using Domain.Repositories;
-using System;
-using System.Runtime.InteropServices;
 
 GameLoop gameLoop = GameLoop.CONTINUE;
 GameState gameState = GameState.IN_PROGRESS;
@@ -57,15 +55,15 @@ do{
         continue;
     }
 
-    var newHero = CreateNewHero();
+    var hero = CreateNewHero();
     Console.Clear();
-    newHero.PrintHeroStats();
+    hero.PrintHeroStats();
 
     Console.WriteLine("Ready to start the game?\n");
     Utils.ConsoleClearAndContinue();
 
-    gameState = PlayDungeon(newHero);
-    PrintEndGameStats(gameState, newHero);
+    gameState = PlayDungeon(hero);
+    PrintEndGameStats(gameState, hero);
         
     Console.WriteLine("Do you want to play again? (yes/no)");
     gameLoop = Utils.ConfirmationDialog();
@@ -163,9 +161,9 @@ GameState FightWitchSpawnedEnemies(Hero hero, Witch witch)
 {
     Console.WriteLine(
         "Witch has died, spawning two more random enemies!\n" +
-        "*********************************\n" +
-        $"1. {witch.EnemiesToSpawn[0]}\n" +
-        $"2. {witch.EnemiesToSpawn[1]}\n"
+        "****************************************************\n" +
+        $"1. {witch.EnemiesToSpawn[0].Type}\n" +
+        $"2. {witch.EnemiesToSpawn[1].Type}\n"
     );
     Utils.ConsoleClearAndContinue();
 
@@ -173,7 +171,7 @@ GameState FightWitchSpawnedEnemies(Hero hero, Witch witch)
     {
         var spawnedEnemy = witch.EnemiesToSpawn[j];
         Console.WriteLine(
-            $"{j+1}. Spawned {spawnedEnemy.Type} from witch!\n" +
+            $"{j+1}. Spawned {spawnedEnemy.Type} from Witch!\n" +
             $"****************************\n");
         PrintHeroAndEnemyStats(hero, spawnedEnemy);
 
@@ -307,9 +305,9 @@ EnemyType EnemyChoiceProbability()
 {
     var random = new Random();
     var choice = random.Next(1, 101);
-    if (choice < 60)
+    if (choice < 50)
         return EnemyType.Goblin;
-    else if (choice >= 60 && choice < 90)
+    else if (choice >= 50 && choice < 80)
         return EnemyType.Brute;
     else
         return EnemyType.Witch;

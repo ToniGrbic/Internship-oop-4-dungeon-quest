@@ -43,7 +43,7 @@ public class Gladiator : Hero
             var HPCost = (int)(HPThreshold * RageHealthCostPercent);
             Console.WriteLine(
                     "Rage is activated!\n" +
-                    $"You lost 10% of your Health: -{HPCost}HP\n"
+                    $"Costs 10% of your Health: -{HPCost}HP\n"
             );
             HP -= HPCost;
         
