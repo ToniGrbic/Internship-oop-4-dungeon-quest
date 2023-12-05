@@ -136,7 +136,13 @@ Hero CreateNewHero()
 }
 
 bool FightEnemy(Hero hero, Enemy enemy)
-{
+{   
+    if(enemy is Witch witch)
+    {
+        var enemiesToSpawn = new List<Enemy>() { CreateRandomEnemy(), CreateRandomEnemy() };
+        witch.EnemiesToSpawn.AddRange(enemiesToSpawn);
+    }
+
     int round = 1;
     while(hero.HP > 0 && enemy.HP > 0)
     {
@@ -148,7 +154,6 @@ bool FightEnemy(Hero hero, Enemy enemy)
         if (hero is Enchanter)
             hero.UseHeroAbility();
         InitiateCombatAndDecideOutcome(hero, enemy);
-
         Utils.ConsoleClearAndContinue();
     }
     return hero.HP > 0;
@@ -156,20 +161,19 @@ bool FightEnemy(Hero hero, Enemy enemy)
 
 GameState FightWitchSpawnedEnemies(Hero hero, Witch witch)
 {
-    var enemiesToSpawn = new List<Enemy>() { CreateRandomEnemy(), CreateRandomEnemy() };
-    witch.EnemiesToSpawn.AddRange(enemiesToSpawn);
     Console.WriteLine(
         "Witch has died, spawning two more random enemies!\n" +
-        $"1. {enemiesToSpawn[0]}\n" +
-        $"2. {enemiesToSpawn[1]}\n" +
-        $"*********************************"
+        "*********************************\n" +
+        $"1. {witch.EnemiesToSpawn[0]}\n" +
+        $"2. {witch.EnemiesToSpawn[1]}\n"
     );
+    Utils.ConsoleClearAndContinue();
 
     for (int j = 0; j < witch.EnemiesToSpawn.Count; j++)
     {
         var spawnedEnemy = witch.EnemiesToSpawn[j];
         Console.WriteLine(
-            $"{j+1}. Spawned {spawnedEnemy.Type}!\n" +
+            $"{j+1}. Spawned {spawnedEnemy.Type} from witch!\n" +
             $"****************************\n");
         PrintHeroAndEnemyStats(hero, spawnedEnemy);
 
@@ -271,7 +275,7 @@ void InitiateCombatAndDecideOutcome(Hero hero, Enemy enemy)
         hero.BasicAttack(enemy);
     }
     else if (combatOutcome == CombatOutcome.LOSE){
-        Console.WriteLine($"Enemy uses {AtkString[enemyAttack]} attack and beats Hero {AtkString[heroAttack]} attack, WIN!\n");
+        Console.WriteLine($"Enemy uses {AtkString[enemyAttack]} attack and beats Hero {AtkString[heroAttack]} attack, LOSS!\n");
         enemy.BasicAttack(hero);
     }
     else{
@@ -305,7 +309,7 @@ EnemyType EnemyChoiceProbability()
     var choice = random.Next(1, 101);
     if (choice < 60)
         return EnemyType.Goblin;
-    else if (choice >= 60 && choice < 80)
+    else if (choice >= 60 && choice < 90)
         return EnemyType.Brute;
     else
         return EnemyType.Witch;
