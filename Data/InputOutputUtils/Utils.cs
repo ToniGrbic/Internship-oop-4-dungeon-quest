@@ -60,8 +60,17 @@ namespace Data.InputOutputUtils
             } while (isError);
             return input;
         }
-
-
+        public static EnemyType EnemyChoiceProbability()
+        {
+            var random = new Random();
+            var choice = random.Next(1, 101);
+            if (choice < 50)
+                return EnemyType.Goblin;
+            else if (choice >= 50 && choice < 80)
+                return EnemyType.Brute;
+            else
+                return EnemyType.Witch;
+        }
 
     }
 }

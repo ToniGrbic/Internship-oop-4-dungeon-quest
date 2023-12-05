@@ -8,22 +8,16 @@
     }
     public enum HeroHP
     {
-        Gladiator = 650,
-        Enchanter = 420,
-        Marksman = 530
+        Gladiator = 600,
+        Enchanter = 380,
+        Marksman = 480
     }
 
     public enum HeroDamage
     {
-        Gladiator = 70,
+        Gladiator = 65,
         Enchanter = 120,
-        Marksman = 95
+        Marksman = 90
     }
-
-    public enum ManaAmount
-    {
-        Enchanter = 100
-    }
-
     
 }
