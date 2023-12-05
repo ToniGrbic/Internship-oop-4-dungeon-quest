@@ -5,7 +5,6 @@ using Domain.Repositories;
 
 GameLoop gameLoop = GameLoop.CONTINUE;
 GameState gameState = GameState.IN_PROGRESS;
-const int NUMBER_OF_DUNGEON_WAVES = 10;
 
 Dictionary<int, Func<string, Hero>>heroTraitChoice = new()
 {
@@ -19,20 +18,6 @@ Dictionary<EnemyType, Func<Enemy>> enemies= new()
     {EnemyType.Goblin, () => new Goblin()},
     {EnemyType.Brute, () => new Brute()},
     {EnemyType.Witch, () => new Witch()}
-};
-
-Dictionary<int, AttackType> Attacks = new()
-{
-    {1, AttackType.DIRECT},
-    {2, AttackType.SIDE},
-    {3, AttackType.COUNTER}
-};
-
-Dictionary<AttackType, string> AtkString = new()
-{
-    {AttackType.DIRECT, "Direct"},
-    {AttackType.SIDE, "Side"},
-    {AttackType.COUNTER, "Counter"}
 };
 
 List<Enemy> defeatedEnemies = new();
@@ -71,40 +56,6 @@ do{
 
 } while (gameLoop == GameLoop.CONTINUE);
 
-GameState PlayDungeon(Hero hero)
-{
-    for(int i = 0; i < NUMBER_OF_DUNGEON_WAVES; i++)
-    {
-        var enemy = CreateRandomEnemy();
-        Console.WriteLine(
-            $"DUNGEON WAVE {i+1}:\n" +
-            $"**********************************\n"
-        );
-        PrintHeroAndEnemyStats(hero, enemy);
-        Console.WriteLine("Continue to start the fight! Press any key...");
-        Utils.ConsoleClearAndContinue();
-
-        bool heroAlive = FightEnemy(hero, enemy);
-        if (!heroAlive)
-            return GameState.LOSS;
-
-        defeatedEnemies.Add(enemy); 
-
-        if(enemy is Witch witch && witch.HP <= 0)
-        {
-            gameState = FightWitchSpawnedEnemies(hero, witch);
-            if(gameState == GameState.LOSS)
-                return GameState.LOSS;
-        }
-
-        if (i == NUMBER_OF_DUNGEON_WAVES - 1)
-            break;
-
-        PostFightActionsAndInfo(hero, enemy);
-    }
-    return GameState.WIN;
-}
-
 Hero CreateNewHero()
 {
     int choice;
@@ -131,6 +82,38 @@ Hero CreateNewHero()
     }while(!success);
 
     return heroTraitChoice[choice].Invoke(heroName);
+}
+GameState PlayDungeon(Hero hero)
+{
+    for(int i = 0; i < Constants.NUMBER_OF_DUNGEON_WAVES; i++)
+    {
+        var enemy = CreateRandomEnemy();
+        Console.WriteLine(
+            $"DUNGEON WAVE {i+1}:\n" +
+            $"**********************************\n"
+        );
+        PrintHeroAndEnemyStats(hero, enemy);
+        Console.WriteLine("Continue to start the fight! Press any key...");
+        Utils.ConsoleClearAndContinue();
+
+        bool heroAlive = FightEnemy(hero, enemy);
+        if (!heroAlive)
+            return GameState.LOSS;
+
+        defeatedEnemies.Add(enemy);
+
+        if(enemy is Witch witch && witch.HP <= 0)
+        {
+            gameState = FightWitchSpawnedEnemies(hero, witch);
+            if(gameState == GameState.LOSS)
+                return GameState.LOSS;
+        }
+        if (i == Constants.NUMBER_OF_DUNGEON_WAVES - 1)
+            break;
+        
+        PostFightActionsAndInfo(hero, enemy);
+    }
+    return GameState.WIN;
 }
 
 bool FightEnemy(Hero hero, Enemy enemy)
@@ -212,30 +195,74 @@ void PostFightActionsAndInfo(Hero hero, Enemy enemy)
         Console.Clear();
     }
 }
+
+void InitiateCombatAndDecideOutcome(Hero hero, Enemy enemy)
+{
+    var heroAttack = HeroChooseAttack();
+    var enemyAttack = EnemyChooseAttack();
+    var combatOutcome = IsHeroWinner(heroAttack, enemyAttack, enemy);
+
+    var heroAtkString = Constants.AtkString[heroAttack];
+    var enemyAtkString = Constants.AtkString[enemyAttack];
+    Console.WriteLine("Attacking...");
+    Thread.Sleep(1000);
+
+    if (combatOutcome == CombatOutcome.WIN && enemy.IsStunned){
+        Console.WriteLine($"Enemy {enemy.Type} is stunned, Hero wins round!\n");
+        hero.BasicAttack(enemy);
+        enemy.IsStunned = false;
+    }
+    else if (combatOutcome == CombatOutcome.WIN){
+        Console.WriteLine($"Hero uses {heroAtkString} attack and beats Enemy {enemyAtkString} attack, WIN!\n");
+        hero.BasicAttack(enemy);
+    }
+    else if (combatOutcome == CombatOutcome.LOSE){
+        Console.WriteLine($"Enemy uses {enemyAtkString} attack and beats Hero {enemyAtkString} attack, LOSS!\n");
+        enemy.BasicAttack(hero);
+    }
+    else{
+        Console.WriteLine($"Both Hero and Enemy used {heroAtkString} attack, DRAW!\n");
+        return;
+    }
+    
+    if (hero is Enchanter && hero.HP <= 0)
+    {
+        var enchanter = hero as Enchanter;
+        if (enchanter!.HasRevive)
+        {
+            Console.WriteLine("Enchnter hero has died, do you want to use Revive? (yes/no)");
+            if (Utils.ConfirmationDialog() == GameLoop.CONTINUE)
+                enchanter.ReviveAbility();
+        }
+        else
+            Console.WriteLine("Revive ability has been used before\n");
+    }
+}
+
 AttackType HeroChooseAttack()
 {
     Console.WriteLine(
-            "Choose your attack type:\n" +
-            "1 - DIRECT\n" +
-            "2 - SIDE\n" +
-            "3 - COUNTER\n"
+        "Choose your attack type:\n" +
+        "1 - DIRECT\n" +
+        "2 - SIDE\n" +
+        "3 - COUNTER\n"
     );
-
     int choice;
     bool success;
     do{
-        success = int.TryParse(Console.ReadLine(), out choice) && Attacks.ContainsKey(choice);
+        success = int.TryParse(Console.ReadLine(), out choice) && Constants.Attacks.ContainsKey(choice);
         if (!success)
             Console.WriteLine("Invalid input for attack type, try again\n");
   
     } while (!success);
-    return Attacks[choice];
+    return Constants.Attacks[choice];
 }
+
 AttackType EnemyChooseAttack()
 {
     var random = new Random();
     var choice = random.Next(1, 4);
-    return Attacks[choice];
+    return Constants.Attacks[choice];
 }
 
 CombatOutcome IsHeroWinner(AttackType heroAttack, AttackType enemyAttack, Enemy enemy)
@@ -254,63 +281,12 @@ CombatOutcome IsHeroWinner(AttackType heroAttack, AttackType enemyAttack, Enemy 
     
     return CombatOutcome.LOSE;
 }
-
-void InitiateCombatAndDecideOutcome(Hero hero, Enemy enemy)
-{
-    var heroAttack = HeroChooseAttack();
-    var enemyAttack = EnemyChooseAttack();
-    var combatOutcome = IsHeroWinner(heroAttack, enemyAttack, enemy);
-    Console.WriteLine("Attacking...");
-    Thread.Sleep(1000);
-
-    if (combatOutcome == CombatOutcome.WIN && enemy.IsStunned){
-        Console.WriteLine($"Enemy {enemy.Type} is stunned, Hero wins round!\n");
-        hero.BasicAttack(enemy);
-        enemy.IsStunned = false;
-    }
-    else if (combatOutcome == CombatOutcome.WIN){
-        Console.WriteLine($"Hero uses {AtkString[heroAttack]} attack and beats Enemy {AtkString[enemyAttack]} attack, WIN!\n");
-        hero.BasicAttack(enemy);
-    }
-    else if (combatOutcome == CombatOutcome.LOSE){
-        Console.WriteLine($"Enemy uses {AtkString[enemyAttack]} attack and beats Hero {AtkString[heroAttack]} attack, LOSS!\n");
-        enemy.BasicAttack(hero);
-    }
-    else{
-        Console.WriteLine($"Both Hero and Enemy used {AtkString[heroAttack]} attack, DRAW!\n");
-        return;
-    }
-    
-    if (hero is Enchanter && hero.HP <= 0)
-    {
-        var enchanter = hero as Enchanter;
-        if (enchanter!.HasRevive)
-        {
-            Console.WriteLine("Enchnter hero has died, do you want to use Revive? (yes/no)");
-            if (Utils.ConfirmationDialog() == GameLoop.CONTINUE)
-                enchanter.ReviveAbility();
-        }
-        else
-            Console.WriteLine("Revive ability has been used before\n");
-    }
-}
 Enemy CreateRandomEnemy()
 {
    var random = new Random();
-   var enemyType = EnemyChoiceProbability();
+   var enemyType = Utils.EnemyChoiceProbability();
    var enemy = enemies[enemyType].Invoke();
    return enemy;
-}
-EnemyType EnemyChoiceProbability()
-{
-    var random = new Random();
-    var choice = random.Next(1, 101);
-    if (choice < 50)
-        return EnemyType.Goblin;
-    else if (choice >= 50 && choice < 80)
-        return EnemyType.Brute;
-    else
-        return EnemyType.Witch;
 }
 
 int InputExperiance(Hero hero)
@@ -358,7 +334,9 @@ void PrintEndGameStats(GameState gameState, Hero hero)
         "***************************\n"
     );
     for (int i = 0; i < defeatedEnemies.Count; i++)
+    {
         Console.WriteLine($"WAVE {i + 1} - {defeatedEnemies[i].Type}");
+        if (defeatedEnemies[i] is Witch witch)
+            witch.PrintSpawnedEnemies();
+    }
 }
-
-
