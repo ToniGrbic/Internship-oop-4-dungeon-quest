@@ -51,7 +51,7 @@ public class Marksman : Hero
             Console.WriteLine($"You damaged the {enemy.Type} for {Damage}");
         }
            
-        if(isStunAttack)
+        if(isStunAttack && enemy.HP > 0)
         {
             enemy.IsStunned = true;
             Console.WriteLine($"The enemy {enemy.Type} is stunned!\n");
