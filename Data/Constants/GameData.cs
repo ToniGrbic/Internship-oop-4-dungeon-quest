@@ -27,7 +27,13 @@ namespace Data.Constants
 
         public static readonly int MANA_INCREASE_PER_LVL = 10;
 
-        public static readonly int MANA_AMOUNT_ENCHANTER = 100;
+        public static readonly int BASE_MANA_AMOUNT_ENCHANTER = 100;
+
+        public static readonly int ATTACK_MANA_COST_ENCHANTER = 15;
+
+        public static readonly int HEAL_MANA_COST = 50;
+
+        public static readonly int HEAL_HP_AMOUNT = 250;
 
         public static readonly float HP_PERCENT_REGAIN = 0.25f;
 

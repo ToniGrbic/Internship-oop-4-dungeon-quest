@@ -17,27 +17,27 @@ namespace Domain.Repositories
             this.HP = HPThreshold;
             this.Damage = (int)HeroDamage.Enchanter;
 
-            ManaThreshold = Constants.MANA_AMOUNT_ENCHANTER;
+            ManaThreshold = Constants.BASE_MANA_AMOUNT_ENCHANTER;
             Mana = ManaThreshold;
-            ManaCostAttack = 15;
+            ManaCostAttack = Constants.ATTACK_MANA_COST_ENCHANTER;
             HasRevive = true;
         }
 
         public void HealAbility()
         {
-            if (Mana >= 50 && HP < HPThreshold)
+            if (Mana >= Constants.HEAL_HP_AMOUNT && HP < HPThreshold)
             {
-                if(HP + 250 >= HPThreshold)
+                if(HP + Constants.HEAL_HP_AMOUNT >= HPThreshold)
                 {
                     var missingHP = HPThreshold - HP;
                     HP = HPThreshold;
                     Console.WriteLine($"+{missingHP}HP, Healed to full!\n");
                 }
                 else {  
-                    HP += 250;
+                    HP += Constants.HEAL_HP_AMOUNT;
                     Console.WriteLine("Healed for +250 HP!\n");
                 }
-                Mana -= 50;
+                Mana -= Constants.HEAL_MANA_COST;
                 PrintHeroStats();
             }
         }
