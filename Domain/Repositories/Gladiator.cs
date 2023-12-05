@@ -1,18 +1,17 @@
 ﻿
 using Data.Constants;
 using Data.InputOutputUtils;
-
 namespace Domain.Repositories;
 
 public class Gladiator : Hero
 {
     public float RageHealthCostPercent { get; set; }
-    public bool isRageActive { get; set; }
+    public bool IsRageActive { get; set; }
     public int BaseDamage { get; set; }
     public Gladiator(string Name) : base(Name)
     {
         RageHealthCostPercent = 0.10f;
-        isRageActive = false;
+        IsRageActive = false;
         BaseDamage = (int)HeroDamage.Gladiator;
         this.Trait = "Gladiator";
         this.HP = (int)HeroHP.Gladiator;
@@ -22,7 +21,7 @@ public class Gladiator : Hero
     public void RageAbility()
     {
         Damage *= 2;
-        isRageActive = true;
+        IsRageActive = true;
     }
     public override void UseHeroAbility()
     {
@@ -30,7 +29,7 @@ public class Gladiator : Hero
             Console.WriteLine("Not enough HP to use Rage Ability\n");
         else
         {
-            Console.WriteLine("Do you want to use Rage Ability? (yes/no)");
+            Console.WriteLine("Do you want to use Rage Ability for double damage? (yes/no)");
             if (Utils.ConfirmationDialog() == GameLoop.CONTINUE)
                 RageAbility();
         }
@@ -39,14 +38,18 @@ public class Gladiator : Hero
     {
         UseHeroAbility();
 
-        if (isRageActive)
+        if (IsRageActive)
         {
-            Console.WriteLine("Rage is activated!\n");
-            HP -= (int)(HPThreshold * RageHealthCostPercent);
-            
+            var HPCost = (int)(HPThreshold * RageHealthCostPercent);
+            Console.WriteLine(
+                    "Rage is activated!\n" +
+                    $"You lost 10% of your Health: -{HPCost}HP\n"
+            );
+            HP -= HPCost;
+        
             enemy.HP -= Damage;
             Console.WriteLine($"You damaged the {enemy.Type} for {Damage}");
-            isRageActive = false;
+            IsRageActive = false;
             Damage = BaseDamage;
         }
         else
@@ -55,8 +58,4 @@ public class Gladiator : Hero
             Console.WriteLine($"You damaged the {enemy.Type} for {Damage}");
         }
     }
-
-    
-
-
 }

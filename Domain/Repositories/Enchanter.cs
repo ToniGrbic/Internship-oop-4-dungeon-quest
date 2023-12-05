@@ -80,7 +80,6 @@ namespace Domain.Repositories
                 if (Utils.ConfirmationDialog() == GameLoop.CONTINUE)
                     HealAbility();
             }
-            //Utils.ConsoleClearAndContinue();
         }
     }
 }

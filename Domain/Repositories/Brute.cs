@@ -6,7 +6,7 @@ namespace Domain.Repositories
     public class Brute:Enemy
     {
         public bool isHeavyStrike = false;
-        public float HeavyStrikeChance = 0.30f;
+        public float HeavyStrikeChance = 0.25f;
         public float PercentageOfHPDamage = 0.25f;
         public Brute()
         {

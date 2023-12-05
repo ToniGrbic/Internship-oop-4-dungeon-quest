@@ -27,7 +27,7 @@ namespace Domain.Repositories
         {
             Console.WriteLine(
                     $"ENEMY: {Type}\n" +
-                    $"HP: {HP} / {HPThreshold}\n" +
+                    $"HP: {(HP < 0 ? 0: HP)} / {HPThreshold}\n" +
                     $"Damage: {Damage}\n" +
                     $"XP: {XP}\n"
             );

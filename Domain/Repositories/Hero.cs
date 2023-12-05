@@ -66,6 +66,7 @@ public class Hero : IHero
                $"HEALTH: {HP}\n" +
                $"EXPERIENCE: {XP}\n"
            );
+            Console.WriteLine("Continue to next enemy. ");
             Utils.ConsoleClearAndContinue();
         }
         else{
@@ -84,7 +85,7 @@ public class Hero : IHero
         else
         {
             HP += HPToGain;
-            Console.WriteLine($"Healed for: {HPToGain}\n");
+            Console.WriteLine($"Healed for +{HPToGain}HP\n");
         }
         PrintHeroStats();
     }
