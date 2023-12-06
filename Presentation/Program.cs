@@ -52,6 +52,7 @@ do{
         
     Console.WriteLine("Do you want to play again? (yes/no)");
     gameLoop = Utils.ConfirmationDialog();
+    defeatedEnemies.Clear();
     Console.Clear();
 
 } while (gameLoop == GameLoop.CONTINUE);
@@ -71,6 +72,7 @@ Hero CreateNewHero()
                "2 - Marksman\n" +
                "3 - Enchanter\n"
         );
+        
 
         success = int.TryParse(Console.ReadLine(), out choice) && heroTraitChoice.ContainsKey(choice);
         if (!success)
