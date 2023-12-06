@@ -25,7 +25,7 @@ namespace Domain.Repositories
 
         public void HealAbility()
         {
-            if (Mana >= Constants.HEAL_HP_AMOUNT && HP < HPThreshold)
+            if (Mana >= Constants.BASE_MANA_AMOUNT_ENCHANTER && HP < HPThreshold)
             {
                 if(HP + Constants.HEAL_HP_AMOUNT >= HPThreshold)
                 {
